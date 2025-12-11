@@ -18,16 +18,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import PhotoUpload from '@/components/PhotoUpload';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
 export default function ScheduleLeadDetail() {
-  const urlParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const urlParams = new URLSearchParams(location.search);
   const recordId = urlParams.get('id');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  console.log("ScheduleLeadDetail: ID from URL:", recordId);
 
   const { data: record, isLoading } = useQuery({
     queryKey: ['schedule-lead', recordId],
