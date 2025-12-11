@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
@@ -27,6 +28,24 @@ export default function Layout({ children }) {
     if (path === '/' && location.pathname !== '/') return false;
     return location.pathname.startsWith(path);
   };
+
+  // Notification Logic: Check for upcoming appointments occasionally
+  // In a real app, this would be a backend cron job.
+  // Here we use the active client to trigger the check.
+  React.useEffect(() => {
+    const checkAppointments = async () => {
+        try {
+            await base44.functions.invoke('checkUpcomingAppointments', {});
+        } catch (e) {
+            console.error("Notification check failed", e);
+        }
+    };
+    
+    // Check on mount and every 15 minutes
+    checkAppointments();
+    const interval = setInterval(checkAppointments, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">

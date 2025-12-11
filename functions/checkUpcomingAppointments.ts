@@ -1,15 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { differenceInHours, parseISO } from 'npm:date-fns@3.6.0';
+import { differenceInHours } from 'npm:date-fns@3.6.0';
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
-        // We use service role to access all records and send emails
-        // Ideally this is triggered by a cron job or external scheduler
         
-        // 1. Fetch all scheduled appointments
-        // In a real app we'd filter by date range in the query if supported, 
-        // here we fetch active schedules and filter in code for simplicity
+        // 1. Fetch active scheduled appointments
         const appointments = await base44.asServiceRole.entities.ClientScheduleLead.filter({
             status: 'scheduled'
         });
@@ -23,36 +19,45 @@ Deno.serve(async (req) => {
             const appointmentDate = new Date(appointment.date);
             const hoursUntil = differenceInHours(appointmentDate, now);
 
-            // Check if appointment is roughly 3 hours away (e.g., between 2.5 and 3.5 hours)
+            // Check if appointment is roughly 3 hours away (e.g., between 2 and 4 to be safe with cron frequency)
+            // Since we poll from the frontend, we need a wider window or state to avoid duplicate alerts.
+            // For this POC, we'll just check if it's within the 3 hour window (3 to 4 hours)
             if (hoursUntil === 3) {
-                // Fetch client details for the email
-                const clients = await base44.asServiceRole.entities.ClientProfile.filter({
-                    id: appointment.client_profile_id
-                });
-                const clientName = clients[0]?.name || "Unknown Client";
+                // Fetch client details
+                let clientName = "Unknown Client";
+                if (appointment.client_profile_id) {
+                     const clients = await base44.asServiceRole.entities.ClientProfile.filter({
+                        id: appointment.client_profile_id
+                    });
+                    if (clients.length > 0) clientName = clients[0].name;
+                }
 
-                // Send Email Notification (Acting as Push Notification)
-                // We'll send it to the App Owner (or a fixed email for now since user isn't specified on the record)
-                // Assuming we get the current user to send TO, but this is a background job.
-                // We'll send to a placeholder or the "created_by" if available, but entities might not expose created_by easily in this SDK version without fetch.
-                // We'll just log it and return success for verification.
+                // Send Email Notification
+                // We need a recipient. We'll try to get the app owner or just use a placeholder if not available.
+                // In a real scenario, we'd have a User Settings or Profile to pull email from.
+                // Here we will use the `SendEmail` integration to the current user (if invoked by user) or fail gracefully.
+                // Since this is called from Layout (User context), we can use `base44.auth.me()`? 
+                // Wait, this function uses `asServiceRole` so it might not have user context if called by system.
+                // But we are calling it from frontend Layout, so `req` has user auth.
                 
-                // For demonstration, we'll try to send to a hardcoded admin or the app owner if accessible.
-                // Since we don't have the app owner's email handy in this context without auth.me() of a logged in user,
-                // We will simulate the "Action" by returning the list of who would be notified.
-                
-                notificationsSent.push({
-                    id: appointment.id,
-                    title: appointment.title,
-                    client: clientName,
-                    time: appointment.date
-                });
+                try {
+                    const user = await base44.auth.me();
+                    if (user && user.email) {
+                        await base44.integrations.Core.SendEmail({
+                            to: user.email,
+                            subject: `Reminder: Appointment with ${clientName} in 3 hours`,
+                            body: `You have an appointment scheduled for ${new Date(appointment.date).toLocaleString()}. \n\nClient: ${clientName}\nTask: ${appointment.title}`
+                        });
+                        notificationsSent.push(`Email sent to ${user.email} for appointment ${appointment.id}`);
+                    }
+                } catch (e) {
+                    console.error("Failed to send email", e);
+                }
             }
         }
 
         return Response.json({ 
             success: true, 
-            message: `Checked ${appointments.length} appointments.`,
             notifications_triggered: notificationsSent 
         });
 

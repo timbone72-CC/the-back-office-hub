@@ -32,10 +32,18 @@ export default function ScheduleLeadDetail() {
   const { data: record, isLoading } = useQuery({
     queryKey: ['schedule-lead', recordId],
     queryFn: async () => {
-      const res = await base44.entities.ClientScheduleLead.filter({ id: recordId });
-      return res && res.length > 0 ? res[0] : null;
+      if (!recordId) return null;
+      try {
+        const res = await base44.entities.ClientScheduleLead.filter({ id: recordId });
+        return res && res.length > 0 ? res[0] : null;
+      } catch (e) {
+        console.error("Error fetching record:", e);
+        return null;
+      }
     },
-    enabled: !!recordId
+    enabled: !!recordId,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   const { data: clients } = useQuery({

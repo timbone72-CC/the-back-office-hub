@@ -30,10 +30,18 @@ export default function ClientDetail() {
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
-      const res = await base44.entities.ClientProfile.filter({ id: clientId });
-      return res && res.length > 0 ? res[0] : null;
+      if (!clientId) return null;
+      try {
+        const res = await base44.entities.ClientProfile.filter({ id: clientId });
+        return res && res.length > 0 ? res[0] : null;
+      } catch (e) {
+        console.error("Error fetching client:", e);
+        return null;
+      }
     },
-    enabled: !!clientId
+    enabled: !!clientId,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   // Reverse Lookup / Related Records View

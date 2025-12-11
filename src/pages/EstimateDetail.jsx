@@ -31,10 +31,18 @@ export default function EstimateDetail() {
   const { data: estimate, isLoading } = useQuery({
     queryKey: ['estimate', estimateId],
     queryFn: async () => {
-      const res = await base44.entities.JobEstimate.filter({ id: estimateId });
-      return res && res.length > 0 ? res[0] : null;
+      if (!estimateId) return null;
+      try {
+        const res = await base44.entities.JobEstimate.filter({ id: estimateId });
+        return res && res.length > 0 ? res[0] : null;
+      } catch (e) {
+        console.error("Error fetching estimate:", e);
+        return null;
+      }
     },
-    enabled: !!estimateId
+    enabled: !!estimateId,
+    staleTime: 0,
+    refetchOnWindowFocus: true
   });
 
   const { data: client } = useQuery({
