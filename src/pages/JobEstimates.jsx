@@ -54,7 +54,7 @@ export default function JobEstimates() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['estimates']);
       setIsCreateOpen(false);
-      navigate(createPageUrl(`EstimateDetail?id=${data.id}`));
+      navigate(`${createPageUrl('EstimateDetail')}?id=${data.id}`);
     }
   });
 
@@ -179,7 +179,7 @@ export default function JobEstimates() {
 
       <div className="space-y-4">
         {filteredEstimates?.map((est) => (
-          <Link key={est.id} to={createPageUrl(`EstimateDetail?id=${est.id}`)} className="block">
+          <Link key={est.id} to={`${createPageUrl('EstimateDetail')}?id=${est.id}`} className="block">
             <Card className="hover:shadow-md transition-all border-slate-200 hover:border-indigo-300 cursor-pointer">
               <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
@@ -190,7 +190,7 @@ export default function JobEstimates() {
                   <h3 className="font-bold text-lg text-slate-900">{est.title}</h3>
                   <div className="flex items-center gap-2 text-slate-500 mt-1">
                     <Link 
-                      to={createPageUrl(`ClientDetail?id=${est.client_profile_id}`)}
+                      to={`${createPageUrl('ClientDetail')}?id=${est.client_profile_id}`}
                       onClick={(e) => e.stopPropagation()} 
                       className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline z-10 relative"
                     >

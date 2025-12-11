@@ -171,7 +171,7 @@ export default function ClientProfiles() {
           ))
         ) : filteredClients?.length > 0 ? (
           filteredClients.map((client) => (
-            <Link key={client.id} to={createPageUrl(`ClientDetail?id=${client.id}`)}>
+            <Link key={client.id} to={`${createPageUrl('ClientDetail')}?id=${client.id}`}>
               <Card className="hover:shadow-lg transition-all duration-200 group border-slate-200 hover:border-indigo-100 cursor-pointer h-full">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-6">

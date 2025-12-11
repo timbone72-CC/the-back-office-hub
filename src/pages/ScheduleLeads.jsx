@@ -204,7 +204,7 @@ export default function ScheduleLeads() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRecords?.map((item) => (
-          <Link key={item.id} to={createPageUrl(`ScheduleLeadDetail?id=${item.id}`)} className="block">
+          <Link key={item.id} to={`${createPageUrl('ScheduleLeadDetail')}?id=${item.id}`} className="block">
             <Card className="border-slate-200 hover:shadow-md transition-all cursor-pointer hover:border-indigo-300">
               <CardContent className="p-5">
                 <div className="flex justify-between items-start mb-4">
@@ -220,7 +220,7 @@ export default function ScheduleLeads() {
                 
                 <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
                 <Link 
-                to={createPageUrl(`ClientDetail?id=${item.client_profile_id}`)}
+                to={`${createPageUrl('ClientDetail')}?id=${item.client_profile_id}`}
                 onClick={(e) => e.stopPropagation()}
                 className="text-indigo-600 hover:text-indigo-800 font-medium text-sm mb-4 block hover:underline w-fit relative z-10"
               >

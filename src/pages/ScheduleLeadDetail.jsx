@@ -31,6 +31,7 @@ export default function ScheduleLeadDetail() {
   const queryClient = useQueryClient();
 
   console.log("ScheduleLeadDetail: ID from URL:", recordId);
+  console.log("Location Search:", location.search);
 
   const { data: record, isLoading } = useQuery({
     queryKey: ['schedule-lead', recordId],
