@@ -31,7 +31,10 @@ export default function ScheduleLeadDetail() {
 
   const { data: record, isLoading } = useQuery({
     queryKey: ['schedule-lead', recordId],
-    queryFn: () => base44.entities.ClientScheduleLead.list({ id: recordId }).then(res => res[0]),
+    queryFn: async () => {
+      const res = await base44.entities.ClientScheduleLead.list({ id: recordId });
+      return res && res.length > 0 ? res[0] : null;
+    },
     enabled: !!recordId
   });
 
@@ -54,7 +57,26 @@ export default function ScheduleLeadDetail() {
   }, [record]);
 
   const updateMutation = useMutation({
-    mutationFn: (data) => base44.entities.ClientScheduleLead.update(recordId, data),
+    mutationFn: async (data) => {
+      // Auto-generate summary if description exists but summary is empty
+      let dataToSave = { ...data };
+      if (data.service_description && !data.ai_summary) {
+        try {
+          toast.info('Generating AI summary...');
+          const aiRes = await base44.integrations.Core.InvokeLLM({
+            prompt: `Summarize this service request into one concise sentence: "${data.service_description}"`,
+            response_json_schema: { type: "object", properties: { summary: { type: "string" } } }
+          });
+          if (aiRes.summary) {
+            dataToSave.ai_summary = aiRes.summary;
+            setFormData(prev => ({ ...prev, ai_summary: aiRes.summary }));
+          }
+        } catch (e) {
+          console.error("AI Summary failed", e);
+        }
+      }
+      return base44.entities.ClientScheduleLead.update(recordId, dataToSave);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['schedule-lead', recordId]);
       toast.success('Record saved successfully');
@@ -90,7 +112,17 @@ export default function ScheduleLeadDetail() {
     }
   });
 
-  if (isLoading || !formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
+  if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
+  if (!record && !isLoading) return (
+    <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Record Not Found</h2>
+      <p className="text-slate-500 mb-4">The record you are looking for does not exist or has been deleted.</p>
+      <Link to={createPageUrl('ScheduleLeads')}>
+        <Button>Return to Schedule & Leads</Button>
+      </Link>
+    </div>
+  );
+  if (!formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 pb-20">

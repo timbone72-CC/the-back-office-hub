@@ -30,7 +30,10 @@ export default function EstimateDetail() {
 
   const { data: estimate, isLoading } = useQuery({
     queryKey: ['estimate', estimateId],
-    queryFn: () => base44.entities.JobEstimate.list({ id: estimateId }).then(res => res[0]),
+    queryFn: async () => {
+      const res = await base44.entities.JobEstimate.list({ id: estimateId });
+      return res && res.length > 0 ? res[0] : null;
+    },
     enabled: !!estimateId
   });
 
@@ -110,7 +113,17 @@ export default function EstimateDetail() {
     calculateTotals(formData.items, rate);
   };
 
-  if (isLoading || !formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
+  if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
+  if (!estimate && !isLoading) return (
+    <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Estimate Not Found</h2>
+      <p className="text-slate-500 mb-4">The estimate you are looking for does not exist or has been deleted.</p>
+      <Link to={createPageUrl('JobEstimates')}>
+        <Button>Return to Estimates</Button>
+      </Link>
+    </div>
+  );
+  if (!formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
