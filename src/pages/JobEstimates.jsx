@@ -189,7 +189,13 @@ export default function JobEstimates() {
                 <div>
                   <h3 className="font-bold text-lg text-slate-900">{est.title}</h3>
                   <div className="flex items-center gap-2 text-slate-500 mt-1">
-                    <span className="font-medium text-slate-700">{getClientName(est.client_profile_id)}</span>
+                    <Link 
+                      to={createPageUrl(`ClientDetail?id=${est.client_profile_id}`)}
+                      onClick={(e) => e.stopPropagation()} 
+                      className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline z-10 relative"
+                    >
+                      {getClientName(est.client_profile_id)}
+                    </Link>
                     <span>•</span>
                     <span>{est.date && format(new Date(est.date), 'MMM d, yyyy')}</span>
                   </div>

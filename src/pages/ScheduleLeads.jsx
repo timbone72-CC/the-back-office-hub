@@ -219,7 +219,13 @@ export default function ScheduleLeads() {
                 </div>
                 
                 <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
-                <p className="text-indigo-600 font-medium text-sm mb-4">{getClientName(item.client_profile_id)}</p>
+                <Link 
+                to={createPageUrl(`ClientDetail?id=${item.client_profile_id}`)}
+                onClick={(e) => e.stopPropagation()}
+                className="text-indigo-600 hover:text-indigo-800 font-medium text-sm mb-4 block hover:underline w-fit relative z-10"
+              >
+                {getClientName(item.client_profile_id)}
+              </Link>
                 
                 <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 bg-slate-50 p-2 rounded-lg">
                   <CalIcon className="w-4 h-4" />

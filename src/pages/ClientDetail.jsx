@@ -29,7 +29,10 @@ export default function ClientDetail() {
 
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', clientId],
-    queryFn: () => base44.entities.ClientProfile.filter({ id: clientId }).then(res => res[0]),
+    queryFn: async () => {
+      const res = await base44.entities.ClientProfile.list({ id: clientId });
+      return res && res.length > 0 ? res[0] : null;
+    },
     enabled: !!clientId
   });
 
@@ -47,7 +50,15 @@ export default function ClientDetail() {
   });
 
   if (clientLoading) return <div className="p-8"><Skeleton className="h-64 w-full rounded-xl" /></div>;
-  if (!client) return <div className="p-8 text-center">Client not found</div>;
+  if (!client && !clientLoading) return (
+    <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
+      <h2 className="text-xl font-bold text-slate-900 mb-2">Client Not Found</h2>
+      <p className="text-slate-500 mb-4">The client profile you are looking for does not exist or has been deleted.</p>
+      <Link to={createPageUrl('ClientProfiles')}>
+        <Button>Return to Client List</Button>
+      </Link>
+    </div>
+  );
 
   const getInitials = (name) => name?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 

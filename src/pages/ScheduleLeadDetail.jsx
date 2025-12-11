@@ -8,13 +8,16 @@ import {
   Calendar,
   Clock,
   User,
-  FileText
+  FileText,
+  Sparkles,
+  Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import PhotoUpload from '@/components/PhotoUpload';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,7 +44,12 @@ export default function ScheduleLeadDetail() {
 
   useEffect(() => {
     if (record) {
-      setFormData({ ...record });
+      setFormData({ 
+        ...record, 
+        photos: record.photos || [],
+        service_description: record.service_description || '',
+        ai_summary: record.ai_summary || ''
+      });
     }
   }, [record]);
 
@@ -53,6 +61,24 @@ export default function ScheduleLeadDetail() {
     },
     onError: () => {
       toast.error('Failed to save record');
+    }
+  });
+
+  const generateSummaryMutation = useMutation({
+    mutationFn: async () => {
+      if (!formData.service_description) throw new Error("Service description is required");
+      const res = await base44.integrations.Core.InvokeLLM({
+        prompt: `Summarize this service request into one concise sentence: "${formData.service_description}"`,
+        response_json_schema: { type: "object", properties: { summary: { type: "string" } } }
+      });
+      return res.summary;
+    },
+    onSuccess: (summary) => {
+      setFormData(prev => ({ ...prev, ai_summary: summary }));
+      toast.success('AI Summary generated');
+    },
+    onError: (err) => {
+      toast.error('Failed to generate summary: ' + err.message);
     }
   });
 
@@ -130,8 +156,9 @@ export default function ScheduleLeadDetail() {
                   <SelectItem value="new">New</SelectItem>
                   <SelectItem value="contacted">Contacted</SelectItem>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
+                  <SelectItem value="needs_callback">Needs Callback</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="canceled">Canceled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -154,10 +181,46 @@ export default function ScheduleLeadDetail() {
             </div>
 
             <div className="col-span-full space-y-2">
-              <label className="text-sm font-medium text-slate-700">Title / Description</label>
+              <label className="text-sm font-medium text-slate-700">Title</label>
               <Input 
                 value={formData.title} 
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="Short title for this record"
+              />
+            </div>
+
+            <div className="col-span-full space-y-2">
+              <label className="text-sm font-medium text-slate-700">Requested Service Description</label>
+              <Textarea 
+                className="min-h-[80px]"
+                value={formData.service_description} 
+                onChange={(e) => setFormData({...formData, service_description: e.target.value})}
+                placeholder="Detailed description of the service requested..."
+              />
+            </div>
+
+            <div className="col-span-full space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500" />
+                  AI Summary
+                </label>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => generateSummaryMutation.mutate()}
+                  disabled={generateSummaryMutation.isPending || !formData.service_description}
+                  className="h-8 text-xs gap-1"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  {generateSummaryMutation.isPending ? 'Generating...' : 'Generate Summary'}
+                </Button>
+              </div>
+              <Input 
+                value={formData.ai_summary} 
+                onChange={(e) => setFormData({...formData, ai_summary: e.target.value})}
+                placeholder="One sentence summary (AI generated)"
+                className="bg-indigo-50/50"
               />
             </div>
 
@@ -176,6 +239,17 @@ export default function ScheduleLeadDetail() {
                 className="min-h-[100px]"
                 value={formData.notes || ''} 
                 onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              />
+            </div>
+
+            <div className="col-span-full space-y-2 pt-4 border-t border-slate-100">
+              <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-slate-500" />
+                Job/Lead Photos
+              </label>
+              <PhotoUpload 
+                photos={formData.photos} 
+                onChange={(photos) => setFormData({...formData, photos})} 
               />
             </div>
           </div>

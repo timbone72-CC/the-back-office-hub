@@ -8,8 +8,10 @@ import {
   Save, 
   Printer, 
   Briefcase, 
-  Calculator 
+  Calculator,
+  Image as ImageIcon
 } from 'lucide-react';
+import PhotoUpload from '@/components/PhotoUpload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,7 +47,8 @@ export default function EstimateDetail() {
       setFormData({
         ...estimate,
         items: estimate.items || [],
-        tax_rate: estimate.tax_rate || 0
+        tax_rate: estimate.tax_rate || 0,
+        photos: estimate.photos || []
       });
     }
   }, [estimate]);
@@ -209,6 +212,21 @@ export default function EstimateDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-slate-500" />
+            Job Photos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PhotoUpload 
+            photos={formData.photos} 
+            onChange={(photos) => setFormData({...formData, photos})} 
+          />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
