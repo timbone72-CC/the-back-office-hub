@@ -164,20 +164,26 @@ export default function JobEstimates() {
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-        <Input 
-          className="pl-10 h-12 bg-white border-slate-200"
-          placeholder="Search estimates by title or client..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <Input 
+            className="pl-10 h-12 bg-white border-slate-200"
+            placeholder="Search estimates by title or client..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Button className="h-12 px-6 bg-slate-800 hover:bg-slate-900">
+          Search
+        </Button>
       </div>
 
       <div className="space-y-4">
         {filteredEstimates?.map((est) => (
-          <Card key={est.id} className="hover:shadow-md transition-shadow border-slate-200">
-            <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Link key={est.id} to={createPageUrl(`EstimateDetail?id=${est.id}`)} className="block">
+            <Card className="hover:shadow-md transition-all border-slate-200 hover:border-indigo-300 cursor-pointer">
+              <CardContent className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
                   <FileText className="w-6 h-6" />
@@ -195,7 +201,7 @@ export default function JobEstimates() {
               <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="text-right">
                   <p className="text-sm text-slate-500 uppercase tracking-wider font-medium">Total</p>
-                  <p className="text-xl font-bold text-slate-900">${est.amount?.toLocaleString()}</p>
+                  <p className="text-xl font-bold text-slate-900">${(est.total_amount || est.amount || 0).toLocaleString()}</p>
                 </div>
                 <Badge className={`px-3 py-1 text-sm ${
                    est.status === 'approved' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
@@ -207,6 +213,7 @@ export default function JobEstimates() {
               </div>
             </CardContent>
           </Card>
+          </Link>
         ))}
         {filteredEstimates?.length === 0 && (
           <div className="text-center py-12 text-slate-500">
