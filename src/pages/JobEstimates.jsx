@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
@@ -44,21 +44,17 @@ export default function JobEstimates() {
     date: new Date().toISOString().split('T')[0]
   });
 
+  const navigate = useNavigate();
+
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.JobEstimate.create({
       ...data,
       amount: parseFloat(data.amount) || 0
     }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(['estimates']);
       setIsCreateOpen(false);
-      setNewEstimate({
-        client_profile_id: '',
-        title: '',
-        amount: '',
-        status: 'draft',
-        date: new Date().toISOString().split('T')[0]
-      });
+      navigate(createPageUrl(`EstimateDetail?id=${data.id}`));
     }
   });
 

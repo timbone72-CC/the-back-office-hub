@@ -202,34 +202,36 @@ export default function ScheduleLeads() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRecords?.map((item) => (
-          <Card key={item.id} className="border-slate-200 hover:shadow-md transition-all">
-            <CardContent className="p-5">
-              <div className="flex justify-between items-start mb-4">
-                <Badge variant="outline" className={`
-                  ${item.type === 'lead' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-purple-50 text-purple-700 border-purple-200'}
-                `}>
-                  {item.type.toUpperCase()}
-                </Badge>
-                <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200">
-                  {item.status}
-                </Badge>
-              </div>
-              
-              <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
-              <p className="text-indigo-600 font-medium text-sm mb-4">{getClientName(item.client_profile_id)}</p>
-              
-              <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 bg-slate-50 p-2 rounded-lg">
-                <CalIcon className="w-4 h-4" />
-                {item.date ? format(new Date(item.date), 'PPP p') : 'No date set'}
-              </div>
-
-              {item.notes && (
-                <div className="text-sm text-slate-600 border-t border-slate-100 pt-3">
-                  <p className="line-clamp-2">{item.notes}</p>
+          <Link key={item.id} to={createPageUrl(`ScheduleLeadDetail?id=${item.id}`)} className="block">
+            <Card className="border-slate-200 hover:shadow-md transition-all cursor-pointer hover:border-indigo-300">
+              <CardContent className="p-5">
+                <div className="flex justify-between items-start mb-4">
+                  <Badge variant="outline" className={`
+                    ${item.type === 'lead' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-purple-50 text-purple-700 border-purple-200'}
+                  `}>
+                    {item.type.toUpperCase()}
+                  </Badge>
+                  <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200">
+                    {item.status}
+                  </Badge>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                
+                <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
+                <p className="text-indigo-600 font-medium text-sm mb-4">{getClientName(item.client_profile_id)}</p>
+                
+                <div className="flex items-center gap-2 text-sm text-slate-500 mb-4 bg-slate-50 p-2 rounded-lg">
+                  <CalIcon className="w-4 h-4" />
+                  {item.date ? format(new Date(item.date), 'PPP p') : 'No date set'}
+                </div>
+
+                {item.notes && (
+                  <div className="text-sm text-slate-600 border-t border-slate-100 pt-3">
+                    <p className="line-clamp-2">{item.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
         ))}
         {filteredRecords?.length === 0 && (
           <div className="col-span-full text-center py-12 text-slate-500">
