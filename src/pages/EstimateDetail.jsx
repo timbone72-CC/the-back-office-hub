@@ -14,7 +14,9 @@ import {
   User,
   Calendar,
   CheckCircle,
-  FileText
+  FileText,
+  Package,
+  Link as LinkIcon
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import QuickScoping from '@/components/estimates/QuickScoping';
@@ -72,6 +74,11 @@ export default function EstimateDetail() {
     enabled: !!estimate?.client_profile_id
   });
 
+  const { data: inventory } = useQuery({
+    queryKey: ['inventory-list'],
+    queryFn: () => base44.entities.Inventory.list('item_name', 100)
+  });
+
   const [formData, setFormData] = useState(null);
 
   useEffect(() => {
@@ -104,6 +111,17 @@ export default function EstimateDetail() {
     if (field === 'quantity') item.quantity = value;
     if (field === 'unit_cost') item.unit_cost = value;
     
+    // Handle inventory linking
+    if (field === 'inventory_id') {
+       item.inventory_id = value;
+       const invItem = inventory?.find(i => i.id === value);
+       if (invItem) {
+          item.description = invItem.item_name;
+          item.unit = invItem.unit;
+          // Could potentially fetch pricing here if we had it in inventory or linked tables
+       }
+    }
+
     const qty = parseFloat(item.quantity) || 0;
     const cost = parseFloat(item.unit_cost) || 0;
     item.total = qty * cost;
@@ -150,28 +168,27 @@ export default function EstimateDetail() {
 
   const convertToJobMutation = useMutation({
     mutationFn: async () => {
-      const jobData = {
-        title: formData.title,
-        client_profile_id: formData.client_profile_id,
-        linked_estimate_id: estimateId,
-        budget: formData.total_amount,
-        material_list: formData.items,
-        scoping_notes: client?.permanent_notes || '',
-        status: 'in_progress',
-        photos: formData.photos
-      };
-      const newJob = await base44.entities.Job.create(jobData);
-      await base44.entities.JobEstimate.update(estimateId, { status: 'converted' });
-      return newJob;
+      // Use backend function to handle atomic job creation and inventory deduction
+      const res = await base44.functions.invoke('convertEstimateToJob', { estimate_id: estimateId });
+      // The backend function returns { job_id, message, deductions }
+      return { id: res.data.job_id, deductions: res.data.deductions };
     },
-    onSuccess: (newJob) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries(['estimate', estimateId]);
-      toast.success('Converted to Job successfully!');
-      navigate(`${createPageUrl('JobDetail')}?id=${newJob.id}`);
+      
+      // Show summary of inventory deductions
+      const deductionCount = result.deductions?.length || 0;
+      if (deductionCount > 0) {
+        toast.success(`Job Created! ${deductionCount} inventory items updated.`);
+      } else {
+        toast.success('Converted to Job successfully!');
+      }
+      
+      navigate(`${createPageUrl('JobDetail')}?id=${result.id}`);
     },
     onError: (e) => {
       console.error(e);
-      toast.error('Failed to convert to job');
+      toast.error('Failed to convert to job: ' + (e.response?.data?.error || e.message));
     }
   });
 
@@ -305,12 +322,66 @@ export default function EstimateDetail() {
                     formData.items.map((item, index) => (
                       <TableRow key={index} className="hover:bg-slate-50/50 transition-colors">
                         <TableCell className="pl-6">
-                          <Input 
-                            value={item.description} 
-                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                            placeholder="Description"
-                            className="border-transparent hover:border-slate-200 focus:border-indigo-500 bg-transparent"
-                          />
+                          <div className="flex items-center gap-2">
+                             <Input 
+                               value={item.description} 
+                               onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                               placeholder="Description"
+                               className="border-transparent hover:border-slate-200 focus:border-indigo-500 bg-transparent flex-1"
+                             />
+                             <Dialog>
+                               <DialogTrigger asChild>
+                                 <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className={`h-6 w-6 ${item.inventory_id ? 'text-indigo-600 bg-indigo-50' : 'text-slate-300 hover:text-slate-500'}`}
+                                    title="Link to Inventory"
+                                 >
+                                   <LinkIcon className="w-3 h-3" />
+                                 </Button>
+                               </DialogTrigger>
+                               <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Link to Inventory Item</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4 py-4">
+                                     <p className="text-sm text-slate-500">
+                                       Select an inventory item to link. This will allow for automatic stock deductions when the job is started.
+                                     </p>
+                                     <Select 
+                                       value={item.inventory_id || ''} 
+                                       onValueChange={(val) => handleItemChange(index, 'inventory_id', val)}
+                                     >
+                                        <SelectTrigger>
+                                           <SelectValue placeholder="Select inventory item..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                           {inventory?.map(inv => (
+                                              <SelectItem key={inv.id} value={inv.id}>
+                                                {inv.item_name} (Qty: {inv.quantity})
+                                              </SelectItem>
+                                           ))}
+                                        </SelectContent>
+                                     </Select>
+                                     {item.inventory_id && (
+                                        <Button 
+                                          variant="ghost" 
+                                          className="text-red-500 h-8 text-xs"
+                                          onClick={() => handleItemChange(index, 'inventory_id', null)}
+                                        >
+                                           Unlink Item
+                                        </Button>
+                                     )}
+                                  </div>
+                               </DialogContent>
+                             </Dialog>
+                          </div>
+                          {item.inventory_id && (
+                             <div className="text-[10px] text-indigo-600 pl-3 flex items-center gap-1">
+                                <Package className="w-3 h-3" />
+                                Linked to Inventory
+                             </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Input 
