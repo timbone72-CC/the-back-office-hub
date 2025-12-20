@@ -387,6 +387,34 @@ export default function EstimateDetail() {
               />
             </CardContent>
           </Card>
+
+          {client && (
+             <Card className="bg-amber-50 border-amber-200">
+               <CardHeader className="pb-2">
+                 <CardTitle className="text-amber-900 text-lg flex items-center gap-2">
+                    <StickyNote className="w-5 h-5" />
+                    Client Notes & Context
+                 </CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div className="flex gap-4 items-start">
+                    <div>
+                      <div className="font-semibold text-amber-900 text-sm">{client.name}</div>
+                      <div className="text-sm text-amber-800 mt-2">
+                        {client.permanent_notes ? (
+                          <p className="bg-white/50 p-2 rounded border border-amber-100">{client.permanent_notes}</p>
+                        ) : (
+                          <p className="italic text-amber-700/70">No permanent notes available.</p>
+                        )}
+                      </div>
+                      <Link to={`${createPageUrl('ClientDetail')}?id=${client.id}`} className="text-xs text-amber-600 hover:underline mt-2 block font-medium">
+                        View Full Client Profile
+                      </Link>
+                    </div>
+                 </div>
+               </CardContent>
+             </Card>
+          )}
         </div>
 
         {/* Sidebar Column */}
@@ -440,33 +468,6 @@ export default function EstimateDetail() {
             </CardContent>
           </Card>
 
-          {client && (
-             <Card className="bg-amber-50 border-amber-200">
-               <CardHeader className="pb-2">
-                 <CardTitle className="text-amber-900 text-lg flex items-center gap-2">
-                    <StickyNote className="w-5 h-5" />
-                    Client Notes
-                 </CardTitle>
-               </CardHeader>
-               <CardContent>
-                 <div className="flex gap-4 items-start">
-                    <div>
-                      <div className="font-semibold text-amber-900 text-sm">{client.name}</div>
-                      <div className="text-sm text-amber-800 mt-2">
-                        {client.permanent_notes ? (
-                          <p className="bg-white/50 p-2 rounded border border-amber-100">{client.permanent_notes}</p>
-                        ) : (
-                          <p className="italic text-amber-700/70">No permanent notes available.</p>
-                        )}
-                      </div>
-                      <Link to={`${createPageUrl('ClientDetail')}?id=${client.id}`} className="text-xs text-amber-600 hover:underline mt-2 block">
-                        View Profile
-                      </Link>
-                    </div>
-                 </div>
-               </CardContent>
-             </Card>
-          )}
         </div>
       </div>
     </div>
