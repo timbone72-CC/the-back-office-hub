@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import QuickScoping from '@/components/estimates/QuickScoping';
+import ScopingAlerts from '@/components/estimates/ScopingAlerts';
 import HandymanCalculators from '@/components/calculators/HandymanCalculators';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -278,6 +279,8 @@ export default function EstimateDetail() {
               </div>
             </CardContent>
           </Card>
+
+          <ScopingAlerts items={formData.items} />
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
