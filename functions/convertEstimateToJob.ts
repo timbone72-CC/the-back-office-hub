@@ -67,6 +67,16 @@ Deno.serve(async (req) => {
                         // Update inventory
                         await base44.entities.Inventory.update(invItem.id, { quantity: newQuantity });
                         
+                        // Log Transaction
+                        await base44.entities.StockTransaction.create({
+                            inventory_id: invItem.id,
+                            quantity_change: -item.quantity,
+                            transaction_type: 'job_deduction',
+                            reference_id: job.id,
+                            reference_note: `Used in Job: ${job.title}`,
+                            date: new Date().toISOString()
+                        });
+
                         deductionReport.push({
                             item: invItem.item_name,
                             deducted: item.quantity,
