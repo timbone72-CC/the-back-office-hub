@@ -115,8 +115,10 @@ export default function MaterialProcurement() {
                       {address && <CardDescription className="flex items-center gap-1 mt-1"><Truck className="w-3 h-3" /> {address}</CardDescription>}
                     </div>
                     {phone && (
-                        <Button className="bg-green-600 hover:bg-green-700 shadow-sm gap-2" size="sm" onClick={() => window.open(`tel:${phone}`, '_self')}>
-                            <Phone className="w-4 h-4" /> Call Store
+                        <Button asChild className="bg-green-600 hover:bg-green-700 shadow-sm gap-2" size="sm">
+                            <a href={`tel:${phone}`}>
+                                <Phone className="w-4 h-4" /> One-Touch Call
+                            </a>
                         </Button>
                     )}
                   </div>
