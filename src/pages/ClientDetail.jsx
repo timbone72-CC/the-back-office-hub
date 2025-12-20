@@ -37,7 +37,18 @@ export default function ClientDetail() {
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
-      if (!clientId) return null;
+      // Demo Fallback if no ID is provided
+      if (!clientId) {
+        return {
+          id: 'demo-client-123',
+          name: 'Demo Client',
+          phone: '(555) 123-4567',
+          email: 'demo@example.com',
+          address: '123 Demo Lane, Builder City, BC',
+          permanent_notes: 'This is a demo client profile shown for preview purposes.',
+          created_date: new Date().toISOString()
+        };
+      }
       try {
         const res = await base44.entities.ClientProfile.filter({ id: clientId });
         return res && res.length > 0 ? res[0] : null;
@@ -46,7 +57,8 @@ export default function ClientDetail() {
         return null;
       }
     },
-    enabled: !!clientId,
+    // Always enabled to allow demo fallback
+    enabled: true,
     staleTime: 0,
     refetchOnWindowFocus: true
   });
