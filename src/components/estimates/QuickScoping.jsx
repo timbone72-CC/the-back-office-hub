@@ -92,34 +92,36 @@ export default function QuickScoping({ onAddItem, clientNotes }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Job Type</label>
-          <Select value={jobType} onValueChange={setJobType}>
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select type..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Drywall">Drywall</SelectItem>
-              <SelectItem value="Framing">Framing</SelectItem>
-              <SelectItem value="Plumbing">Plumbing</SelectItem>
-              <SelectItem value="Electrical">Electrical</SelectItem>
-              <SelectItem value="Paint">Paint</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="flex gap-3">
+          <div className="space-y-1 flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Job Type</label>
+            <Select value={jobType} onValueChange={setJobType}>
+              <SelectTrigger className="bg-white h-8 text-xs">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Drywall">Drywall</SelectItem>
+                <SelectItem value="Framing">Framing</SelectItem>
+                <SelectItem value="Plumbing">Plumbing</SelectItem>
+                <SelectItem value="Electrical">Electrical</SelectItem>
+                <SelectItem value="Paint">Paint</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Supplier</label>
-          <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select supplier..." />
-            </SelectTrigger>
-            <SelectContent>
-              {suppliers?.map(s => (
-                <SelectItem key={s.id} value={s.id}>{s.store_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-1 flex-1">
+            <label className="text-xs font-semibold text-slate-500 uppercase">Supplier</label>
+            <Select value={selectedSupplierId} onValueChange={setSelectedSupplierId}>
+              <SelectTrigger className="bg-white h-8 text-xs">
+                <SelectValue placeholder="Store" />
+              </SelectTrigger>
+              <SelectContent>
+                {suppliers?.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.store_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="pt-2">
@@ -130,35 +132,31 @@ export default function QuickScoping({ onAddItem, clientNotes }) {
            ) : materials?.length === 0 ? (
              <p className="text-sm text-slate-500">No materials found for this category.</p>
            ) : (
-             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[250px] overflow-y-auto pr-1">
                {materials.map(material => {
                  const price = getPriceRange(material.id);
                  const isPreferred = preferences?.keywords?.some(k => material.item_name.toLowerCase().includes(k.toLowerCase()));
                  return (
-                   <div key={material.id} className={`flex items-center justify-between p-3 rounded-lg border shadow-sm transition-all ${isPreferred ? 'bg-amber-50 border-amber-200 ring-1 ring-amber-200' : 'bg-white border-indigo-100'}`}>
-                     <div className="flex-1">
-                       <div className="flex items-center gap-2">
-                            <div className="font-medium text-sm text-slate-900">{material.item_name}</div>
+                   <div key={material.id} className={`flex items-center justify-between p-2 rounded-lg border shadow-sm transition-all ${isPreferred ? 'bg-amber-50 border-amber-200 ring-1 ring-amber-200' : 'bg-white border-indigo-100'}`}>
+                     <div className="flex-1 min-w-0 mr-2">
+                       <div className="flex flex-wrap items-center gap-1">
+                            <div className="font-medium text-xs text-slate-900 truncate" title={material.item_name}>{material.item_name}</div>
                             {isPreferred && (
-                                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-white/50 px-1.5 py-0.5 rounded border border-amber-200">
-                                    <Star className="w-3 h-3 fill-amber-500 text-amber-600" />
-                                    Client Pref
-                                </div>
+                                <Star className="w-3 h-3 fill-amber-500 text-amber-600 shrink-0" />
                             )}
                        </div>
-                       <div className="text-xs text-slate-500">{material.unit}</div>
+                       <div className="text-[10px] text-slate-500">{material.unit}</div>
                      </div>
-                     <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-1 shrink-0">
                         {price ? (
                           <div className="text-right">
-                            <div className="text-xs font-medium text-slate-900">${price.min} - ${price.max}</div>
-                            <div className="text-[10px] text-slate-500">est. range</div>
+                            <div className="text-xs font-semibold text-slate-900">${price.min}-${price.max}</div>
                           </div>
                         ) : (
-                          <Badge variant="outline" className="text-xs text-slate-400">No Price</Badge>
+                          <span className="text-[10px] text-slate-400">--</span>
                         )}
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 hover:bg-indigo-50 text-indigo-600" onClick={() => handleAdd(material, price)}>
-                          <Plus className="w-4 h-4" />
+                        <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-indigo-50 text-indigo-600" onClick={() => handleAdd(material, price)}>
+                          <Plus className="w-3 h-3" />
                         </Button>
                      </div>
                    </div>
