@@ -72,19 +72,29 @@ Paint 1G,Paint Pros,45.00,55.00,gallon`;
                 value={csvContent}
                 onChange={(e) => setCsvContent(e.target.value)}
               />
-              <Button 
-                onClick={handleImport} 
-                disabled={isImporting} 
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
-              >
-                {isImporting ? (
-                  <>Importing...</>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" /> Import Data
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCsvContent('')}
+                  disabled={isImporting}
+                  className="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200"
+                >
+                  Clear / Reset
+                </Button>
+                <Button 
+                  onClick={handleImport} 
+                  disabled={isImporting} 
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isImporting ? (
+                    <>Importing...</>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" /> Import Data
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
