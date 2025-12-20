@@ -33,12 +33,18 @@ export default function ScheduleLeads() {
 
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
-    queryFn: () => base44.entities.ClientProfile.list('name', 100),
+    queryFn: async () => {
+      const res = await base44.entities.ClientProfile.list('name', 100);
+      return res.map(c => ({ ...c, id: c.id || "", name: c.name || "" }));
+    },
   });
 
   const { data: records, isLoading } = useQuery({
     queryKey: ['schedule-leads'],
-    queryFn: () => base44.entities.ClientScheduleLead.list('date', 100), // Closest dates first
+    queryFn: async () => {
+      const res = await base44.entities.ClientScheduleLead.list('date', 100);
+      return res.map(r => ({ ...r, id: r.id || "", title: r.title || "" }));
+    },
   });
 
   const [newItem, setNewItem] = useState({
@@ -76,7 +82,7 @@ export default function ScheduleLeads() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-[100vw] overflow-x-hidden px-1">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Schedule & Leads</h1>
@@ -195,20 +201,20 @@ export default function ScheduleLeads() {
             </TabsList>
           </Tabs>
 
-          <div className="bg-white border border-slate-200 rounded-lg p-1 flex items-center">
+          <div className="bg-white border border-slate-200 rounded-lg p-1 flex items-center relative z-20">
              <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`h-8 px-2 ${viewMode === 'list' ? 'bg-slate-100 text-slate-900' : 'text-slate-500'}`}
-                onClick={() => setViewMode('list')}
+                className={`h-8 px-2 cursor-pointer ${viewMode === 'list' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                onClick={(e) => { e.preventDefault(); setViewMode('list'); }}
              >
                 <LayoutList className="w-4 h-4 mr-2" /> List
              </Button>
              <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`h-8 px-2 ${viewMode === 'calendar' ? 'bg-slate-100 text-slate-900' : 'text-slate-500'}`}
-                onClick={() => setViewMode('calendar')}
+                className={`h-8 px-2 cursor-pointer ${viewMode === 'calendar' ? 'bg-slate-100 text-slate-900 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                onClick={(e) => { e.preventDefault(); setViewMode('calendar'); }}
              >
                 <Calendar className="w-4 h-4 mr-2" /> Calendar
              </Button>
@@ -248,7 +254,7 @@ export default function ScheduleLeads() {
                   </Badge>
                 </div>
                 
-                <h3 className="font-bold text-lg text-slate-900 mb-1 break-words w-full">{item.title}</h3>
+                <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
                 <Link 
                 to={`${createPageUrl('ClientDetail')}?id=${item.client_profile_id}`}
                 onClick={(e) => e.stopPropagation()}
