@@ -6,6 +6,7 @@ import ScheduleLeads from './pages/ScheduleLeads';
 import EstimateDetail from './pages/EstimateDetail';
 import ScheduleLeadDetail from './pages/ScheduleLeadDetail';
 import Calculators from './pages/Calculators';
+import MaterialProcurement from './pages/MaterialProcurement';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "EstimateDetail": EstimateDetail,
     "ScheduleLeadDetail": ScheduleLeadDetail,
     "Calculators": Calculators,
+    "MaterialProcurement": MaterialProcurement,
 }
 
 export const pagesConfig = {

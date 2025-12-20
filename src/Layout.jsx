@@ -10,7 +10,8 @@ import {
   Menu, 
   X,
   Briefcase,
-  Calculator
+  Calculator,
+  ShoppingBag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -22,6 +23,7 @@ export default function Layout({ children }) {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Client Profiles', icon: Users, path: '/clients' },
     { name: 'Job Estimates', icon: FileText, path: '/estimates' },
+    { name: 'Procurement', icon: ShoppingBag, path: '/procurement' },
     { name: 'Calculators', icon: Calculator, path: '/calculators' },
     { name: 'Schedule & Leads', icon: Calendar, path: '/schedule-leads' },
   ];
@@ -69,6 +71,7 @@ export default function Layout({ children }) {
                 item.path.slice(1) === 'clients' ? 'ClientProfiles' : 
                 item.path.slice(1) === 'estimates' ? 'JobEstimates' : 
                 item.path.slice(1) === 'calculators' ? 'Calculators' :
+                item.path.slice(1) === 'procurement' ? 'MaterialProcurement' :
                 'ScheduleLeads'
               )}>
                 <div 
@@ -119,6 +122,7 @@ export default function Layout({ children }) {
                   item.path.slice(1) === 'clients' ? 'ClientProfiles' : 
                   item.path.slice(1) === 'estimates' ? 'JobEstimates' : 
                   item.path.slice(1) === 'calculators' ? 'Calculators' :
+                  item.path.slice(1) === 'procurement' ? 'MaterialProcurement' :
                   'ScheduleLeads'
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}

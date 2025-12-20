@@ -63,11 +63,15 @@ export default function QuickScoping({ onAddItem, clientNotes }) {
   const handleAdd = (material, priceRange) => {
     // Default to average price or min price if available
     const unitCost = priceRange ? (priceRange.min + priceRange.max) / 2 : 0;
+    const supplier = suppliers?.find(s => s.id === selectedSupplierId);
+    
     onAddItem({
       description: material.item_name,
       quantity: 1,
       unit_cost: unitCost,
-      total: unitCost // 1 * unitCost
+      total: unitCost, // 1 * unitCost
+      supplier_id: selectedSupplierId,
+      supplier_name: supplier?.store_name || 'Unknown Supplier'
     });
   };
 
