@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import QuickScoping from '@/components/estimates/QuickScoping';
+import ProcurementSummary from '@/components/estimates/ProcurementSummary';
 import HandymanCalculators from '@/components/calculators/HandymanCalculators';
 import ScopingAlerts from '@/components/estimates/ScopingAlerts';
 import { Button } from '@/components/ui/button';
@@ -371,6 +372,8 @@ export default function EstimateDetail() {
 
         <div className="space-y-6">
           <QuickScoping onAddItem={addItem} clientNotes={client?.permanent_notes} />
+
+          <ProcurementSummary items={formData.items} />
 
           <Card className="sticky top-6">
             <CardHeader>
