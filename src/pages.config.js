@@ -10,6 +10,7 @@ import MaterialProcurement from './pages/MaterialProcurement';
 import DataImport from './pages/DataImport';
 import JobDetail from './pages/JobDetail';
 import Inventory from './pages/Inventory';
+import Portfolio from './pages/Portfolio';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "DataImport": DataImport,
     "JobDetail": JobDetail,
     "Inventory": Inventory,
+    "Portfolio": Portfolio,
 }
 
 export const pagesConfig = {

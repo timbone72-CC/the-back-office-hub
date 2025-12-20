@@ -13,7 +13,8 @@ Briefcase,
 Calculator,
 ShoppingBag,
 Database,
-Package
+Package,
+Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -27,6 +28,7 @@ export default function Layout({ children }) {
     { name: 'Job Estimates', icon: FileText, path: '/estimates' },
     { name: 'Procurement', icon: ShoppingBag, path: '/procurement' },
     { name: 'Inventory', icon: Package, path: '/inventory' },
+    { name: 'Portfolio', icon: ImageIcon, path: '/portfolio' },
     { name: 'Calculators', icon: Calculator, path: '/calculators' },
     { name: 'Schedule & Leads', icon: Calendar, path: '/schedule-leads' },
     { name: 'Data Import', icon: Database, path: '/import' },
@@ -77,6 +79,7 @@ export default function Layout({ children }) {
                 item.path.slice(1) === 'calculators' ? 'Calculators' :
                 item.path.slice(1) === 'procurement' ? 'MaterialProcurement' :
                 item.path.slice(1) === 'inventory' ? 'Inventory' :
+                item.path.slice(1) === 'portfolio' ? 'Portfolio' :
                 item.path.slice(1) === 'import' ? 'DataImport' :
                 'ScheduleLeads'
               )}>
