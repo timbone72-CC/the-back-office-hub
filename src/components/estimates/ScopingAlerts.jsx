@@ -8,7 +8,12 @@ export default function ScopingAlerts({ items }) {
     if (!items || !Array.isArray(items)) return null;
 
     // Check for Drywall
-    if (items.some(item => item.description?.toLowerCase().includes('drywall'))) {
+    if (items.some(item => 
+        item.description?.toLowerCase().includes('drywall') ||
+        item.description?.toLowerCase().includes('sheetrock') ||
+        item.description?.toLowerCase().includes('gypsum') ||
+        item.description?.toLowerCase().includes('plaster')
+    )) {
         alerts.push({
             id: 'drywall',
             title: 'Drywall Alert',
@@ -20,7 +25,11 @@ export default function ScopingAlerts({ items }) {
     if (items.some(item => 
         item.description?.toLowerCase().includes('plumbing') || 
         item.description?.toLowerCase().includes('pipe') || 
-        item.description?.toLowerCase().includes('leak')
+        item.description?.toLowerCase().includes('leak') ||
+        item.description?.toLowerCase().includes('faucet') ||
+        item.description?.toLowerCase().includes('sink') ||
+        item.description?.toLowerCase().includes('toilet') ||
+        item.description?.toLowerCase().includes('valve')
     )) {
         alerts.push({
             id: 'plumbing',
