@@ -94,6 +94,28 @@ export default function ScheduleLeadDetail() {
           console.error("AI Summary failed", e);
         }
       }
+
+      // Sync notes to Client Profile's permanent notes
+      if (data.client_profile_id && data.notes) {
+         try {
+            const clientRes = await base44.entities.ClientProfile.filter({ id: data.client_profile_id });
+            if (clientRes && clientRes.length > 0) {
+               const client = clientRes[0];
+               // Check if this specific note content is already present to avoid duplicates on re-save
+               if (!client.permanent_notes?.includes(data.notes)) {
+                   const timestamp = new Date().toLocaleDateString();
+                   const noteEntry = `\n[${timestamp} - ${data.type === 'lead' ? 'Lead' : 'Schedule'}]: ${data.notes}`;
+                   await base44.entities.ClientProfile.update(client.id, {
+                      permanent_notes: (client.permanent_notes || '') + noteEntry
+                   });
+                   toast.success("Notes synced to Client Profile");
+               }
+            }
+         } catch (e) {
+            console.error("Failed to sync notes to client", e);
+         }
+      }
+
       return base44.entities.ClientScheduleLead.update(recordId, dataToSave);
     },
     onSuccess: () => {
@@ -256,7 +278,17 @@ export default function ScheduleLeadDetail() {
             </div>
 
             <div className="col-span-full space-y-2">
-              <label className="text-sm font-medium text-slate-700">Client</label>
+              <div className="flex justify-between items-center">
+                 <label className="text-sm font-medium text-slate-700">Client</label>
+                 {formData.client_profile_id && (
+                    <Link 
+                      to={`${createPageUrl('ClientDetail')}?id=${formData.client_profile_id}`} 
+                      className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1"
+                    >
+                       View Profile <ArrowLeft className="w-3 h-3 rotate-180" />
+                    </Link>
+                 )}
+              </div>
               <Select 
                 value={formData.client_profile_id} 
                 onValueChange={(val) => setFormData({...formData, client_profile_id: val})}
