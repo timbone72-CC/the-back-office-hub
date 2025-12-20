@@ -90,7 +90,21 @@ export default function EstimateDetail() {
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.JobEstimate.update(estimateId, data),
-    onSuccess: () => {
+    onSuccess: async (data, variables) => {
+      // Check if status changed and notify client
+      if (estimate && client?.email && variables.status !== estimate.status) {
+        try {
+          await base44.integrations.Core.SendEmail({
+            to: client.email,
+            subject: `Estimate Status Update: ${variables.title}`,
+            body: `Hello ${client.name},\n\nThe status of your estimate "${variables.title}" has been updated to: ${variables.status.toUpperCase()}.\n\nBest regards,\nSmart Handyman Hub`
+          });
+          toast.success(`Status notification sent to ${client.email}`);
+        } catch (e) {
+          console.error("Failed to send email notification", e);
+          toast.warning("Estimate saved, but email notification failed");
+        }
+      }
       queryClient.invalidateQueries(['estimate', estimateId]);
       toast.success('Estimate saved successfully');
     },
