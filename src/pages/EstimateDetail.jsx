@@ -367,7 +367,7 @@ export default function EstimateDetail() {
         </div>
 
         <div className="space-y-6">
-          <QuickScoping onAddItem={addItem} />
+          <QuickScoping onAddItem={addItem} clientNotes={client?.permanent_notes} />
 
           <Card className="sticky top-6">
             <CardHeader>

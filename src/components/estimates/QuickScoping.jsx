@@ -4,12 +4,29 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, ShoppingCart } from 'lucide-react';
+import { Loader2, Plus, ShoppingCart, Star, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function QuickScoping({ onAddItem }) {
+export default function QuickScoping({ onAddItem, clientNotes }) {
   const [jobType, setJobType] = useState('');
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
+
+  // 0. Analyze Client Preferences (AI)
+  const { data: preferences, isLoading: prefsLoading } = useQuery({
+    queryKey: ['client-preferences', clientNotes],
+    queryFn: async () => {
+      if (!clientNotes) return { keywords: [] };
+      try {
+        const res = await base44.functions.invoke('analyzeClientPreferences', { notes: clientNotes });
+        return res.data;
+      } catch (e) {
+        console.error("AI Analysis failed", e);
+        return { keywords: [] };
+      }
+    },
+    enabled: !!clientNotes,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
 
   // 1. Fetch Suppliers
   const { data: suppliers } = useQuery({
@@ -57,10 +74,18 @@ export default function QuickScoping({ onAddItem }) {
   return (
     <Card className="h-full border-indigo-100 bg-indigo-50/50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-indigo-900">
-          <ShoppingCart className="w-5 h-5" />
-          Quick Scoping Wizard
-        </CardTitle>
+        <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-indigo-900">
+            <ShoppingCart className="w-5 h-5" />
+            Quick Scoping Wizard
+            </CardTitle>
+            {clientNotes && (
+                <div className="flex items-center gap-1 text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full border border-indigo-200">
+                    {prefsLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    {prefsLoading ? 'Analyzing...' : 'AI Context Active'}
+                </div>
+            )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -104,10 +129,19 @@ export default function QuickScoping({ onAddItem }) {
              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                {materials.map(material => {
                  const price = getPriceRange(material.id);
+                 const isPreferred = preferences?.keywords?.some(k => material.item_name.toLowerCase().includes(k.toLowerCase()));
                  return (
-                   <div key={material.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100 shadow-sm">
+                   <div key={material.id} className={`flex items-center justify-between p-3 rounded-lg border shadow-sm transition-all ${isPreferred ? 'bg-amber-50 border-amber-200 ring-1 ring-amber-200' : 'bg-white border-indigo-100'}`}>
                      <div className="flex-1">
-                       <div className="font-medium text-sm text-slate-900">{material.item_name}</div>
+                       <div className="flex items-center gap-2">
+                            <div className="font-medium text-sm text-slate-900">{material.item_name}</div>
+                            {isPreferred && (
+                                <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-white/50 px-1.5 py-0.5 rounded border border-amber-200">
+                                    <Star className="w-3 h-3 fill-amber-500 text-amber-600" />
+                                    Client Pref
+                                </div>
+                            )}
+                       </div>
                        <div className="text-xs text-slate-500">{material.unit}</div>
                      </div>
                      <div className="flex items-center gap-3">
