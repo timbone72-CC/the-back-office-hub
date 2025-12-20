@@ -12,7 +12,8 @@ X,
 Briefcase,
 Calculator,
 ShoppingBag,
-Database
+Database,
+Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -25,6 +26,7 @@ export default function Layout({ children }) {
     { name: 'Client Profiles', icon: Users, path: '/clients' },
     { name: 'Job Estimates', icon: FileText, path: '/estimates' },
     { name: 'Procurement', icon: ShoppingBag, path: '/procurement' },
+    { name: 'Inventory', icon: Package, path: '/inventory' },
     { name: 'Calculators', icon: Calculator, path: '/calculators' },
     { name: 'Schedule & Leads', icon: Calendar, path: '/schedule-leads' },
     { name: 'Data Import', icon: Database, path: '/import' },
@@ -74,6 +76,7 @@ export default function Layout({ children }) {
                 item.path.slice(1) === 'estimates' ? 'JobEstimates' : 
                 item.path.slice(1) === 'calculators' ? 'Calculators' :
                 item.path.slice(1) === 'procurement' ? 'MaterialProcurement' :
+                item.path.slice(1) === 'inventory' ? 'Inventory' :
                 item.path.slice(1) === 'import' ? 'DataImport' :
                 'ScheduleLeads'
               )}>

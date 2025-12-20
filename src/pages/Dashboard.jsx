@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import LowStockWidget from '@/components/inventory/LowStockWidget';
 
 export default function Dashboard() {
   const { data: clients, isLoading: loadingClients } = useQuery({
@@ -34,9 +35,6 @@ export default function Dashboard() {
     {
       title: "Total Clients",
       value: loadingClients ? "..." : (clients?.length || 0) > 0 ? "Active" : "0", 
-      // Note: without a total count endpoint, we can only list. 
-      // For a real dashboard we'd calculate totals differently or just show 'View All'
-      // I'll stick to a simple placeholder or just list recent activity for now.
       icon: Users,
       color: "bg-blue-500",
       link: "ClientProfiles"
@@ -84,8 +82,8 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="border-slate-200 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-slate-400" />
@@ -125,25 +123,29 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
-          <CardContent className="p-8 flex flex-col justify-center h-full items-start">
-            <h3 className="text-2xl font-bold mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-1 gap-3 w-full">
-              <Link to={createPageUrl('ClientProfiles')} className="w-full">
-                <button className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm p-4 rounded-xl text-left flex items-center justify-between transition-all">
-                  <span className="font-medium">Add New Client</span>
-                  <ArrowUpRight className="w-5 h-5" />
-                </button>
-              </Link>
-              <Link to={createPageUrl('JobEstimates')} className="w-full">
-                <button className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm p-4 rounded-xl text-left flex items-center justify-between transition-all">
-                  <span className="font-medium">Create Estimate</span>
-                  <ArrowUpRight className="w-5 h-5" />
-                </button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <LowStockWidget />
+
+          <Card className="border-slate-200 shadow-sm bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
+            <CardContent className="p-8 flex flex-col justify-center h-full items-start">
+              <h3 className="text-2xl font-bold mb-4">Quick Actions</h3>
+              <div className="grid grid-cols-1 gap-3 w-full">
+                <Link to={createPageUrl('ClientProfiles')} className="w-full">
+                  <button className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm p-4 rounded-xl text-left flex items-center justify-between transition-all">
+                    <span className="font-medium">Add New Client</span>
+                    <ArrowUpRight className="w-5 h-5" />
+                  </button>
+                </Link>
+                <Link to={createPageUrl('JobEstimates')} className="w-full">
+                  <button className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-sm p-4 rounded-xl text-left flex items-center justify-between transition-all">
+                    <span className="font-medium">Create Estimate</span>
+                    <ArrowUpRight className="w-5 h-5" />
+                  </button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
