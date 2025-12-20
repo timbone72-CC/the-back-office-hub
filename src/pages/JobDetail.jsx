@@ -17,7 +17,10 @@ import {
   Trash2,
   Printer,
   TrendingUp,
-  CreditCard
+  CreditCard,
+  Star,
+  MessageSquare,
+  Copy
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +45,11 @@ export default function JobDetail() {
 
   const [isAddMaterialOpen, setIsAddMaterialOpen] = useState(false);
   const [newItem, setNewItem] = useState({ description: '', quantity: 1, unit_cost: 0, supplier_name: '' });
+  
+  // Review Request State
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewContent, setReviewContent] = useState(null);
+  const [isGeneratingReview, setIsGeneratingReview] = useState(false);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', jobId],
@@ -135,6 +143,28 @@ export default function JobDetail() {
     } catch (e) {
       console.error(e);
       toast.error('Failed to generate invoice');
+    }
+  };
+
+  const handleRequestReview = async () => {
+    setIsReviewOpen(true);
+    if (!reviewContent) {
+      setIsGeneratingReview(true);
+      try {
+        const { data } = await base44.functions.invoke('generateClientMessage', { 
+            type: 'review_request', 
+            context: { 
+              clientName: client?.name || 'Client', 
+              jobTitle: job.title 
+            } 
+        });
+        setReviewContent(data);
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to generate review request");
+      } finally {
+        setIsGeneratingReview(false);
+      }
     }
   };
 
@@ -264,8 +294,73 @@ export default function JobDetail() {
           </div>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Job Overview</CardTitle>
+              {job.status === 'completed' && (
+                <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                  <DialogTrigger asChild>
+                    <Button 
+                      onClick={handleRequestReview}
+                      className="bg-amber-100 text-amber-800 hover:bg-amber-200 border border-amber-200 gap-2"
+                    >
+                      <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                      Request Review
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                      <DialogTitle>Request Client Review</DialogTitle>
+                    </DialogHeader>
+                    {isGeneratingReview ? (
+                      <div className="py-8 text-center text-slate-500 animate-pulse">
+                        <Sparkles className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
+                        Generating personalized message...
+                      </div>
+                    ) : reviewContent ? (
+                      <div className="space-y-6 py-4">
+                        <div className="space-y-2">
+                          <Label className="flex justify-between">
+                            <span>Text Message (SMS)</span>
+                            <Button 
+                              variant="ghost" size="sm" className="h-5 text-xs text-indigo-600"
+                              onClick={() => {
+                                navigator.clipboard.writeText(reviewContent.sms_text);
+                                toast.success("Copied to clipboard");
+                              }}
+                            >
+                              <Copy className="w-3 h-3 mr-1" /> Copy
+                            </Button>
+                          </Label>
+                          <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-700 border border-slate-200">
+                            {reviewContent.sms_text}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="flex justify-between">
+                            <span>Email Draft</span>
+                            <Button 
+                              variant="ghost" size="sm" className="h-5 text-xs text-indigo-600"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`Subject: ${reviewContent.email_subject}\n\n${reviewContent.email_body}`);
+                                toast.success("Copied to clipboard");
+                              }}
+                            >
+                              <Copy className="w-3 h-3 mr-1" /> Copy All
+                            </Button>
+                          </Label>
+                          <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-200">
+                            <div className="font-semibold mb-2 text-slate-900">Subject: {reviewContent.email_subject}</div>
+                            <div className="whitespace-pre-wrap">{reviewContent.email_body}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-red-500">Failed to load content.</div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">

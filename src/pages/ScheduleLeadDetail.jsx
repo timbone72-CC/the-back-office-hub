@@ -10,7 +10,9 @@ import {
   User,
   FileText,
   Sparkles,
-  Image as ImageIcon
+  Image as ImageIcon,
+  MessageSquare,
+  Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,6 +131,32 @@ export default function ScheduleLeadDetail() {
     }
   });
 
+  const handleOnMyWay = async () => {
+    try {
+      toast.info("Preparing message...");
+      const clientName = clients?.find(c => c.id === formData.client_profile_id)?.name || 'Client';
+      
+      const { data } = await base44.functions.invoke('generateClientMessage', { 
+          type: 'on_my_way', 
+          context: { clientName, eta: '15-20 minutes' } 
+      });
+      
+      const text = data?.sms_text || `Hi ${clientName}, I'm on my way! ETA 20 mins.`;
+      
+      // Try to open SMS app
+      window.location.href = `sms:?body=${encodeURIComponent(text)}`;
+      toast.success("SMS app opened");
+      
+      // Also copy to clipboard as backup
+      navigator.clipboard.writeText(text);
+      toast.message("Text copied to clipboard just in case!");
+      
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate message");
+    }
+  };
+
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
   if (!record && !isLoading) return (
     <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
@@ -162,17 +190,27 @@ export default function ScheduleLeadDetail() {
             </p>
           </div>
         </div>
-        <Button 
-          variant="outline" 
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
-          onClick={() => {
-            if (confirm('Are you sure you want to delete this record?')) {
-              deleteMutation.mutate();
-            }
-          }}
-        >
-          <Trash2 className="w-4 h-4" /> Delete
-        </Button>
+        <div className="flex gap-2">
+          {formData.type === 'schedule' && (
+            <Button 
+              className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+              onClick={handleOnMyWay}
+            >
+              <Navigation className="w-4 h-4" /> On My Way
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this record?')) {
+                deleteMutation.mutate();
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4" /> Delete
+          </Button>
+        </div>
       </div>
 
       <Card>
