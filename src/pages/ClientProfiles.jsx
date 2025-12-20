@@ -37,7 +37,8 @@ export default function ClientProfiles() {
     name: '',
     phone: '',
     email: '',
-    address: ''
+    address: '',
+    permanent_notes: ''
   });
 
   const { data: clients, isLoading } = useQuery({
@@ -50,9 +51,9 @@ export default function ClientProfiles() {
     onSuccess: () => {
       queryClient.invalidateQueries(['clients']);
       setIsCreateOpen(false);
-      setNewClient({ name: '', phone: '', email: '', address: '' });
-    }
-  });
+      setNewClient({ name: '', phone: '', email: '', address: '', permanent_notes: '' });
+      }
+      });
 
   const filteredClients = clients?.filter(client => 
     client.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -125,8 +126,17 @@ export default function ClientProfiles() {
                   placeholder="123 Main St, City, State"
                 />
               </div>
-            </div>
-            <DialogFooter>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Permanent Notes (Preferences)</Label>
+                <Input 
+                  id="notes" 
+                  value={newClient.permanent_notes} 
+                  onChange={(e) => setNewClient({...newClient, permanent_notes: e.target.value})}
+                  placeholder="e.g. Prefers Cedar, Gate Code: 1234"
+                />
+              </div>
+              </div>
+              <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
               <Button 
                 onClick={() => createMutation.mutate(newClient)}
