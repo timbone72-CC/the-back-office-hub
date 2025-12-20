@@ -248,7 +248,7 @@ export default function ScheduleLeads() {
                   </Badge>
                 </div>
                 
-                <h3 className="font-bold text-lg text-slate-900 mb-1">{item.title}</h3>
+                <h3 className="font-bold text-lg text-slate-900 mb-1 break-words w-full">{item.title}</h3>
                 <Link 
                 to={`${createPageUrl('ClientDetail')}?id=${item.client_profile_id}`}
                 onClick={(e) => e.stopPropagation()}
