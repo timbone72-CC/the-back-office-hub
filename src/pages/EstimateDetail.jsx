@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PhotoUpload from '@/components/PhotoUpload';
 import QuickScoping from '@/components/estimates/QuickScoping';
+import HandymanCalculators from '@/components/calculators/HandymanCalculators';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +26,13 @@ import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
 
 export default function EstimateDetail() {
   const location = useLocation();
@@ -168,6 +176,19 @@ export default function EstimateDetail() {
           <Button variant="outline" className="gap-2" onClick={() => toast.info('PDF export coming soon!')}>
             <Printer className="w-4 h-4" /> Print/PDF
           </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Calculator className="w-4 h-4" /> Calculators
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Handyman Tools</DialogTitle>
+              </DialogHeader>
+              <HandymanCalculators />
+            </DialogContent>
+          </Dialog>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" className="gap-2">
