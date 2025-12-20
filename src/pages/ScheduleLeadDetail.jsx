@@ -52,6 +52,16 @@ export default function ScheduleLeadDetail() {
     refetchOnWindowFocus: true
   });
 
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.ClientScheduleLead.create(data),
+    onSuccess: (newRecord) => {
+      toast.success('Record created successfully');
+      // Navigate to the edit view of the new record to prevent duplicate creations
+      navigate(`${createPageUrl('ScheduleLeadDetail')}?id=${newRecord.id}`, { replace: true });
+    },
+    onError: () => toast.error('Failed to create record')
+  });
+
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
     queryFn: () => base44.entities.ClientProfile.list('name', 100),
@@ -65,15 +75,29 @@ export default function ScheduleLeadDetail() {
   const [formData, setFormData] = useState(null);
 
   useEffect(() => {
-    if (record) {
+    if (recordId && record) {
+      // Edit Mode
       setFormData({ 
         ...record, 
         photos: record.photos || [],
         service_description: record.service_description || '',
         ai_summary: record.ai_summary || ''
       });
+    } else if (!recordId) {
+      // New Record Mode
+      setFormData({
+        client_profile_id: '',
+        type: 'lead',
+        title: '',
+        date: '',
+        status: 'new',
+        notes: '',
+        service_description: '',
+        ai_summary: '',
+        photos: []
+      });
     }
-  }, [record]);
+  }, [record, recordId]);
 
   const updateMutation = useMutation({
     mutationFn: async (data) => {
@@ -180,7 +204,9 @@ export default function ScheduleLeadDetail() {
   };
 
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
-  if (!record && !isLoading) return (
+  
+  // Show "Not Found" only if we have an ID but no record found after loading
+  if (recordId && !record && !isLoading) return (
     <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
       <h2 className="text-xl font-bold text-slate-900 mb-2">Record Not Found</h2>
       <p className="text-slate-500 mb-4">The record you are looking for does not exist or has been deleted.</p>
@@ -189,6 +215,7 @@ export default function ScheduleLeadDetail() {
       </Link>
     </div>
   );
+
   if (!formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
 
   return (
@@ -202,10 +229,10 @@ export default function ScheduleLeadDetail() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
-              {formData.type === 'lead' ? 'Lead Details' : 'Appointment Details'}
+              {!recordId ? 'New Record' : (formData.type === 'lead' ? 'Lead Details' : 'Appointment Details')}
             </h1>
             <p className="text-slate-500">
-              #{recordId.slice(-6)} 
+              {recordId ? `#${recordId.slice(-6)}` : 'Create a new schedule or lead entry'} 
               {formData.client_profile_id && clients && (
                 <span className="ml-2">• {clients.find(c => c.id === formData.client_profile_id)?.name || 'Unknown Client'}</span>
               )}
@@ -221,17 +248,19 @@ export default function ScheduleLeadDetail() {
               <Navigation className="w-4 h-4" /> On My Way
             </Button>
           )}
-          <Button 
-            variant="outline" 
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this record?')) {
-                deleteMutation.mutate();
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4" /> Delete
-          </Button>
+          {recordId && (
+            <Button 
+              variant="outline" 
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 gap-2"
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this record?')) {
+                  deleteMutation.mutate();
+                }
+              }}
+            >
+              <Trash2 className="w-4 h-4" /> Delete
+            </Button>
+          )}
         </div>
       </div>
 
@@ -403,11 +432,17 @@ export default function ScheduleLeadDetail() {
           <div className="pt-4 border-t border-slate-100">
             <Button 
               className="w-full bg-indigo-600 hover:bg-indigo-700 gap-2"
-              onClick={() => updateMutation.mutate(formData)}
-              disabled={updateMutation.isPending}
+              onClick={() => {
+                 if (recordId) {
+                    updateMutation.mutate(formData);
+                 } else {
+                    createMutation.mutate(formData);
+                 }
+              }}
+              disabled={updateMutation.isPending || createMutation.isPending}
             >
               <Save className="w-4 h-4" /> 
-              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending || createMutation.isPending ? 'Saving...' : (recordId ? 'Save Changes' : 'Create Record')}
             </Button>
           </div>
         </CardContent>
