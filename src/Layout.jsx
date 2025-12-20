@@ -9,7 +9,8 @@ import {
   LayoutDashboard, 
   Menu, 
   X,
-  Briefcase
+  Briefcase,
+  Calculator
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -21,6 +22,7 @@ export default function Layout({ children }) {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Client Profiles', icon: Users, path: '/clients' },
     { name: 'Job Estimates', icon: FileText, path: '/estimates' },
+    { name: 'Calculators', icon: Calculator, path: '/calculators' },
     { name: 'Schedule & Leads', icon: Calendar, path: '/schedule-leads' },
   ];
 
@@ -62,7 +64,13 @@ export default function Layout({ children }) {
           {navigation.map((item) => {
             const active = isActive(item.path);
             return (
-              <Link key={item.name} to={createPageUrl(item.path === '/' ? 'Dashboard' : item.path.slice(1) === 'clients' ? 'ClientProfiles' : item.path.slice(1) === 'estimates' ? 'JobEstimates' : 'ScheduleLeads')}>
+              <Link key={item.name} to={createPageUrl(
+                item.path === '/' ? 'Dashboard' : 
+                item.path.slice(1) === 'clients' ? 'ClientProfiles' : 
+                item.path.slice(1) === 'estimates' ? 'JobEstimates' : 
+                item.path.slice(1) === 'calculators' ? 'Calculators' :
+                'ScheduleLeads'
+              )}>
                 <div 
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                     active 
@@ -106,7 +114,13 @@ export default function Layout({ children }) {
             {navigation.map((item) => (
               <Link 
                 key={item.name} 
-                to={createPageUrl(item.path === '/' ? 'Dashboard' : item.path.slice(1) === 'clients' ? 'ClientProfiles' : item.path.slice(1) === 'estimates' ? 'JobEstimates' : 'ScheduleLeads')}
+                to={createPageUrl(
+                  item.path === '/' ? 'Dashboard' : 
+                  item.path.slice(1) === 'clients' ? 'ClientProfiles' : 
+                  item.path.slice(1) === 'estimates' ? 'JobEstimates' : 
+                  item.path.slice(1) === 'calculators' ? 'Calculators' :
+                  'ScheduleLeads'
+                )}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <div className={`flex items-center gap-3 px-4 py-4 rounded-xl mb-2 ${
