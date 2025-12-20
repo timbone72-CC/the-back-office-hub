@@ -8,6 +8,7 @@ import {
   Save, 
   Printer, 
   Briefcase, 
+  Loader2,
   Calculator,
   Image as ImageIcon,
   StickyNote,
