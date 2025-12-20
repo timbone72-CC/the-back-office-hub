@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Calendar as CalIcon, Filter } from 'lucide-react';
+import { Plus, Search, Calendar as CalIcon, Filter, LayoutList, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import CalendarView from '@/components/CalendarView';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -26,7 +27,9 @@ export default function ScheduleLeads() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
@@ -183,13 +186,34 @@ export default function ScheduleLeads() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 justify-between items-end md:items-center">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
-          <TabsList className="bg-white border border-slate-200">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="schedule">Schedule</TabsTrigger>
-            <TabsTrigger value="lead">Leads</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+            <TabsList className="bg-white border border-slate-200">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="schedule">Schedule</TabsTrigger>
+              <TabsTrigger value="lead">Leads</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="bg-white border border-slate-200 rounded-lg p-1 flex items-center">
+             <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`h-8 px-2 ${viewMode === 'list' ? 'bg-slate-100 text-slate-900' : 'text-slate-500'}`}
+                onClick={() => setViewMode('list')}
+             >
+                <LayoutList className="w-4 h-4 mr-2" /> List
+             </Button>
+             <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`h-8 px-2 ${viewMode === 'calendar' ? 'bg-slate-100 text-slate-900' : 'text-slate-500'}`}
+                onClick={() => setViewMode('calendar')}
+             >
+                <Calendar className="w-4 h-4 mr-2" /> Calendar
+             </Button>
+          </div>
+        </div>
         
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -202,6 +226,12 @@ export default function ScheduleLeads() {
         </div>
       </div>
 
+      {viewMode === 'calendar' ? (
+        <CalendarView 
+          events={filteredRecords || []} 
+          onEventClick={(event) => navigate(`${createPageUrl('ScheduleLeadDetail')}?id=${event.id}`)} 
+        />
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRecords?.map((item) => (
           <Link key={item.id} to={`${createPageUrl('ScheduleLeadDetail')}?id=${item.id}`} className="block">
@@ -247,6 +277,7 @@ export default function ScheduleLeads() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
