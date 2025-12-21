@@ -222,8 +222,13 @@ export default function EstimateDetail() {
       return { id: res.data.job_id, deductions: res.data.deductions };
     },
     onSuccess: (result) => {
-      queryClient.invalidateQueries(['estimate', estimateId]);
-      
+      // PHASE 3: Cache Synchronization
+      // Ensure all derived states are refreshed immediately
+      queryClient.invalidateQueries({ queryKey: ['estimate', estimateId] });
+      queryClient.invalidateQueries({ queryKey: ['estimates'] }); // Update list view
+      queryClient.invalidateQueries({ queryKey: ['inventory-list'] }); // Reflect stock deductions
+      queryClient.invalidateQueries({ queryKey: ['active-jobs'] }); // Show new job in lists
+
       // Show summary of inventory deductions
       const deductionCount = result.deductions?.length || 0;
       if (deductionCount > 0) {
