@@ -148,11 +148,11 @@ export default function EstimateDetail() {
   const handleItemChange = (index, field, value) => {
     const newItems = [...formData.items];
     const item = { ...newItems[index] };
-    
+
     if (field === 'description') item.description = value;
     if (field === 'quantity') item.quantity = value;
     if (field === 'unit_cost') item.unit_cost = value;
-    
+
     // Handle inventory linking
     if (field === 'inventory_id') {
        item.inventory_id = value;
@@ -160,39 +160,37 @@ export default function EstimateDetail() {
        if (invItem) {
           item.description = invItem.item_name;
           item.unit = invItem.unit;
-          // Could potentially fetch pricing here if we had it in inventory or linked tables
        }
     }
 
-    const qty = parseFloat(item.quantity) || 0;
-    const cost = parseFloat(item.unit_cost) || 0;
+    // Strict parsing updates
+    const qty = Number(item.quantity) || 0;
+    const cost = Number(item.unit_cost) || 0;
     item.total = qty * cost;
-    
+
     newItems[index] = item;
     calculateTotals(newItems, formData.tax_rate);
   };
 
   const calculateTotals = (items, taxRate) => {
     const subtotal = items.reduce((sum, item) => {
-      const qty = Number(item.quantity);
-      const cost = Number(item.unit_cost);
-      // Guard against NaN
-      const safeQty = isNaN(qty) ? 0 : qty;
-      const safeCost = isNaN(cost) ? 0 : cost;
-      
-      const lineTotal = safeQty * safeCost;
+      const qty = Number(item.quantity) || 0;
+      const cost = Number(item.unit_cost) || 0;
+      const lineTotal = qty * cost;
+      // Update line total in object if missing/stale (ensures integrity)
+      item.total = lineTotal; 
       return sum + lineTotal;
     }, 0);
-    
+
     const rate = Number(taxRate) || 0;
     const taxAmount = subtotal * (rate / 100);
     const total = subtotal + taxAmount;
-    
+
     setFormData(prev => ({
       ...prev,
       items,
       subtotal,
-      tax_rate: taxRate,
+      tax_rate: rate,
       total_amount: total
     }));
   };
