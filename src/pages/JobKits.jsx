@@ -19,7 +19,13 @@ export default function JobKits() {
 
   const [formData, setFormData] = useState({ name: '', description: '', items: [] });
   const [editingId, setEditingId] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
   const queryClient = useQueryClient();
+
+  const { data: pricing } = useQuery({
+    queryKey: ['material-pricing'],
+    queryFn: () => base44.entities.MaterialPricing.list('material_id', 1000),
+  });
 
   const { data: inventory } = useQuery({
     queryKey: ['inventory'],
@@ -63,6 +69,7 @@ export default function JobKits() {
   const handleCreateOpen = () => {
     setEditingId(null);
     setFormData({ name: '', description: '', items: [] });
+    setSelectedItems([]);
     setIsDialogOpen(true);
   };
 
@@ -74,6 +81,7 @@ export default function JobKits() {
         description: kit.description,
         items: kit.items ? JSON.parse(JSON.stringify(kit.items)) : []
     });
+    setSelectedItems([]);
     setIsDialogOpen(true);
   };
 
@@ -90,6 +98,45 @@ export default function JobKits() {
   const removeKitItem = (index) => {
     const updatedItems = formData.items.filter((_, i) => i !== index);
     setFormData({ ...formData, items: updatedItems });
+    setSelectedItems(prev => prev.filter(i => i !== index).map(i => i > index ? i - 1 : i));
+  };
+
+  const toggleSelectAll = () => {
+      if (selectedItems.length === formData.items.length) {
+          setSelectedItems([]);
+      } else {
+          setSelectedItems(formData.items.map((_, i) => i));
+      }
+  };
+
+  const toggleSelect = (index) => {
+      if (selectedItems.includes(index)) {
+          setSelectedItems(selectedItems.filter(i => i !== index));
+      } else {
+          setSelectedItems([...selectedItems, index]);
+      }
+  };
+
+  const deleteSelected = () => {
+      const updatedItems = formData.items.filter((_, i) => !selectedItems.includes(i));
+      setFormData({ ...formData, items: updatedItems });
+      setSelectedItems([]);
+  };
+
+  const getItemPrice = (inventoryId) => {
+      if (!inventoryId || !inventory || !pricing) return 0;
+      const invItem = inventory.find(i => i.id === inventoryId);
+      if (!invItem?.material_library_id) return 0;
+      // Using max_price as a conservative estimate
+      const priceRecord = pricing.find(p => p.material_id === invItem.material_library_id);
+      return priceRecord ? (priceRecord.max_price || 0) : 0;
+  };
+
+  const getTotalCost = () => {
+      return formData.items.reduce((sum, item) => {
+          const price = getItemPrice(item.inventory_id);
+          return sum + (price * (item.quantity || 0));
+      }, 0);
   };
 
   const handleExport = async () => {
@@ -308,53 +355,104 @@ export default function JobKits() {
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <Label>Materials in Kit</Label>
+                  <div className="flex items-center gap-2">
+                      <Label>Materials in Kit</Label>
+                      {selectedItems.length > 0 && (
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            onClick={deleteSelected}
+                            className="h-6 text-xs px-2"
+                          >
+                            Delete Selected ({selectedItems.length})
+                          </Button>
+                      )}
+                  </div>
                   <Button variant="outline" size="sm" onClick={addKitItem}>
                     <Plus className="w-3 h-3 mr-1" /> Add Item
                   </Button>
                 </div>
-                <div className="border rounded-lg p-2 space-y-2 max-h-60 overflow-y-auto bg-slate-50">
-                  {formData.items.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-4">No items added yet.</p>
-                  ) : (
-                    formData.items.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 items-end">
-                        <div className="flex-1">
-                          <Label className="text-xs">Item</Label>
-                          <Select 
-                            value={item.inventory_id} 
-                            onValueChange={(val) => updateKitItem(idx, 'inventory_id', val)}
-                          >
-                            <SelectTrigger className="h-8">
-                              <SelectValue placeholder="Select item" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventory?.map(inv => (
-                                <SelectItem key={inv.id} value={inv.id}>{inv.item_name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="w-24">
-                          <Label className="text-xs">Qty</Label>
-                          <Input 
-                            type="number" 
-                            className="h-8"
-                            value={item.quantity}
-                            onChange={(e) => updateKitItem(idx, 'quantity', parseFloat(e.target.value))}
-                          />
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeKitItem(idx)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
+                
+                <div className="border rounded-lg overflow-hidden max-h-80 overflow-y-auto bg-white">
+                    <Table>
+                        <TableHeader className="bg-slate-50 sticky top-0 z-10">
+                            <TableRow>
+                                <TableHead className="w-[40px]">
+                                    <input 
+                                        type="checkbox"
+                                        className="rounded border-slate-300"
+                                        checked={formData.items.length > 0 && selectedItems.length === formData.items.length}
+                                        onChange={toggleSelectAll}
+                                    />
+                                </TableHead>
+                                <TableHead>Item Name</TableHead>
+                                <TableHead className="w-[100px] text-right">Stock Level</TableHead>
+                                <TableHead className="w-[100px] text-right">Quantity</TableHead>
+                                <TableHead className="w-[100px] text-right">Cost</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {formData.items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center py-8 text-slate-500">
+                                        No materials added. Click "Add Item" to start building your kit.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                formData.items.map((item, idx) => {
+                                    const invItem = inventory?.find(i => i.id === item.inventory_id);
+                                    const price = getItemPrice(item.inventory_id);
+                                    return (
+                                        <TableRow key={idx}>
+                                            <TableCell>
+                                                <input 
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300"
+                                                    checked={selectedItems.includes(idx)}
+                                                    onChange={() => toggleSelect(idx)}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Select 
+                                                    value={item.inventory_id} 
+                                                    onValueChange={(val) => updateKitItem(idx, 'inventory_id', val)}
+                                                >
+                                                    <SelectTrigger className="h-8 border-none shadow-none focus:ring-0">
+                                                        <SelectValue placeholder="Select item" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {inventory?.map(inv => (
+                                                            <SelectItem key={inv.id} value={inv.id}>{inv.item_name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </TableCell>
+                                            <TableCell className="text-right text-slate-600">
+                                                {invItem?.quantity || 0} {invItem?.unit || 'units'}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Input 
+                                                    type="number" 
+                                                    className="h-8 text-right"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateKitItem(idx, 'quantity', parseFloat(e.target.value))}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-right text-slate-600">
+                                                ${(price * (item.quantity || 0)).toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
+                        </TableBody>
+                        <TableFooter className="bg-slate-50 font-medium">
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-right">Total Kit Cost:</TableCell>
+                                <TableCell className="text-right">${getTotalCost().toFixed(2)}</TableCell>
+                            </TableRow>
+                        </TableFooter>
+                    </Table>
                 </div>
               </div>
             </div>
