@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Package, Trash2, Save, X, Pencil } from 'lucide-react';
+import { Plus, Package, Trash2, Save, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,7 +13,6 @@ import { toast } from 'sonner';
 export default function JobKits() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newKit, setNewKit] = useState({ name: '', description: '', items: [] });
-  const [editingKitId, setEditingKitId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: inventory } = useQuery({
@@ -33,17 +32,6 @@ export default function JobKits() {
       setIsDialogOpen(false);
       setNewKit({ name: '', description: '', items: [] });
       toast.success('Job Kit created successfully');
-    },
-  });
-
-  const updateKitMutation = useMutation({
-    mutationFn: (data) => base44.entities.JobKit.update(editingKitId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['job-kits']);
-      setIsDialogOpen(false);
-      setNewKit({ name: '', description: '', items: [] });
-      setEditingKitId(null);
-      toast.success('Job Kit updated successfully');
     },
   });
 
@@ -72,22 +60,6 @@ export default function JobKits() {
 
   const getInventoryName = (id) => inventory?.find(i => i.id === id)?.item_name || 'Unknown Item';
 
-  const handleCreateOpen = () => {
-    setNewKit({ name: '', description: '', items: [] });
-    setEditingKitId(null);
-    setIsDialogOpen(true);
-  };
-
-  const handleEditOpen = (kit) => {
-    setNewKit({
-        name: kit.name,
-        description: kit.description || '',
-        items: kit.items ? kit.items.map(i => ({...i})) : []
-    });
-    setEditingKitId(kit.id);
-    setIsDialogOpen(true);
-  };
-
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -96,12 +68,14 @@ export default function JobKits() {
           <p className="text-slate-500 mt-1">Manage bundled material kits for quick scoping</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={handleCreateOpen} className="bg-indigo-600 hover:bg-indigo-700">
+          <DialogTrigger asChild>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">
               <Plus className="w-4 h-4 mr-2" /> Create Kit
-          </Button>
+            </Button>
+          </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingKitId ? 'Edit Job Kit' : 'Create New Job Kit'}</DialogTitle>
+              <DialogTitle>Create New Job Kit</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -175,11 +149,8 @@ export default function JobKits() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={() => editingKitId ? updateKitMutation.mutate(newKit) : createKitMutation.mutate(newKit)} 
-                disabled={!newKit.name || createKitMutation.isPending || updateKitMutation.isPending}
-              >
-                {createKitMutation.isPending || updateKitMutation.isPending ? 'Saving...' : (editingKitId ? 'Save Changes' : 'Create Kit')}
+              <Button onClick={() => createKitMutation.mutate(newKit)} disabled={!newKit.name || createKitMutation.isPending}>
+                {createKitMutation.isPending ? 'Saving...' : 'Create Kit'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -198,28 +169,18 @@ export default function JobKits() {
                   <CardTitle className="text-lg">{kit.name}</CardTitle>
                 </div>
               </div>
-              <div className="flex gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-slate-400 hover:text-indigo-600"
-                  onClick={() => handleEditOpen(kit)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="text-slate-400 hover:text-red-500"
-                  onClick={() => {
-                    if(confirm('Are you sure you want to delete this kit?')) {
-                      deleteKitMutation.mutate(kit.id);
-                    }
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-slate-400 hover:text-red-500"
+                onClick={() => {
+                  if(confirm('Are you sure you want to delete this kit?')) {
+                    deleteKitMutation.mutate(kit.id);
+                  }
+                }}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-slate-500 mb-4">{kit.description || 'No description'}</p>
