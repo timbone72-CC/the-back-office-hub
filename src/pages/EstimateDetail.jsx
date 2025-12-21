@@ -174,11 +174,17 @@ export default function EstimateDetail() {
 
   const calculateTotals = (items, taxRate) => {
     const subtotal = items.reduce((sum, item) => {
-      const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_cost) || 0);
+      const qty = Number(item.quantity);
+      const cost = Number(item.unit_cost);
+      // Guard against NaN
+      const safeQty = isNaN(qty) ? 0 : qty;
+      const safeCost = isNaN(cost) ? 0 : cost;
+      
+      const lineTotal = safeQty * safeCost;
       return sum + lineTotal;
     }, 0);
     
-    const rate = parseFloat(taxRate) || 0;
+    const rate = Number(taxRate) || 0;
     const taxAmount = subtotal * (rate / 100);
     const total = subtotal + taxAmount;
     

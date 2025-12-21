@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Estimate not found' }, { status: 404 });
         }
         const estimate = estimates[0];
+        const batchId = crypto.randomUUID();
 
         if (estimate.status === 'converted') {
             return Response.json({ error: 'Estimate already converted' }, { status: 400 });
@@ -70,9 +71,10 @@ Deno.serve(async (req) => {
                         // Log Transaction
                         await base44.entities.StockTransaction.create({
                             inventory_id: invItem.id,
-                            quantity_change: -item.quantity,
+                            quantity_change: -Number(item.quantity),
                             transaction_type: 'job_deduction',
                             reference_id: job.id,
+                            batch_id: batchId,
                             reference_note: `Used in Job: ${job.title}`,
                             date: new Date().toISOString()
                         });

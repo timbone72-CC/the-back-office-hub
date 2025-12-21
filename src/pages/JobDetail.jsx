@@ -105,8 +105,8 @@ export default function JobDetail() {
   const handleAddMaterial = () => {
     if (!newItem.description) return;
     
-    const quantity = parseFloat(newItem.quantity) || 0;
-    const unit_cost = parseFloat(newItem.unit_cost) || 0;
+    const quantity = Number(newItem.quantity) || 0;
+    const unit_cost = Number(newItem.unit_cost) || 0;
     const total = quantity * unit_cost;
 
     const itemToAdd = {
