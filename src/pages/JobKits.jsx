@@ -111,9 +111,37 @@ export default function JobKits() {
       }
   };
 
+  const downloadTemplate = () => {
+      const headers = "KitName,Description,ItemName,Quantity\nBasic Bath,Rough-in kit,2x4 Stud,10";
+      const blob = new Blob([headers], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'job_kit_template.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+  };
+
+  const handleFileUpload = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          setImportCsv(event.target.result);
+          toast.success("File loaded successfully");
+      };
+      reader.onerror = () => {
+          toast.error("Failed to read file");
+      };
+      reader.readAsText(file);
+  };
+
   const handleImport = async () => {
       if (!importCsv.trim()) {
-          toast.error("Please paste CSV data");
+          toast.error("Please provide CSV data");
           return;
       }
       setIsImporting(true);
@@ -164,15 +192,39 @@ export default function JobKits() {
                         <DialogTitle>Import Job Kits</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                        <p className="text-sm text-slate-500">
-                            Paste CSV data with headers: <code className="bg-slate-100 px-1 rounded">KitName, Description, ItemName, Quantity</code>
-                        </p>
-                        <textarea 
-                            className="w-full h-48 p-3 text-xs font-mono border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                            placeholder="KitName,Description,ItemName,Quantity&#10;Basic Bath,Rough-in kit,2x4 Stud,10&#10;Basic Bath,Rough-in kit,Drywall Sheet,5"
-                            value={importCsv}
-                            onChange={(e) => setImportCsv(e.target.value)}
-                        />
+                        <div className="flex flex-col gap-4">
+                            <div className="flex justify-between items-center">
+                                <Label className="text-sm text-slate-700">Upload CSV File</Label>
+                                <Button 
+                                    variant="link" 
+                                    size="sm" 
+                                    onClick={downloadTemplate} 
+                                    className="h-auto p-0 text-indigo-600 font-medium"
+                                >
+                                    <Download className="w-3 h-3 mr-1" /> Download Template
+                                </Button>
+                            </div>
+                            
+                            <Input 
+                                type="file" 
+                                accept=".csv" 
+                                onChange={handleFileUpload}
+                                className="cursor-pointer bg-slate-50 border-dashed border-2 border-slate-300 hover:bg-slate-100"
+                            />
+
+                            <div className="relative">
+                                <Label className="text-sm text-slate-700 mb-2 block">Or Paste CSV Data</Label>
+                                <textarea 
+                                    className="w-full h-48 p-3 text-xs font-mono border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none bg-white"
+                                    placeholder="KitName,Description,ItemName,Quantity&#10;Basic Bath,Rough-in kit,2x4 Stud,10"
+                                    value={importCsv}
+                                    onChange={(e) => setImportCsv(e.target.value)}
+                                />
+                                <div className="text-[10px] text-slate-400 mt-1 text-right">
+                                    Headers: KitName, Description, ItemName, Quantity
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsImportOpen(false)}>Cancel</Button>
