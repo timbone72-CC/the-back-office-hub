@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
   ArrowLeft, 
@@ -43,7 +43,15 @@ export default function JobDetail() {
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
   const jobId = urlParams.get('id');
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Redirect if no ID is present
+  React.useEffect(() => {
+    if (!jobId) {
+      navigate(createPageUrl('JobEstimates'), { replace: true });
+    }
+  }, [jobId, navigate]);
 
   const [isAddMaterialOpen, setIsAddMaterialOpen] = useState(false);
   const [newItem, setNewItem] = useState({ description: '', quantity: 1, unit_cost: 0, supplier_name: '' });
@@ -170,7 +178,18 @@ export default function JobDetail() {
   };
 
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
-  if (!job) return <div className="p-8">Job not found.</div>;
+  
+  if (!job) {
+    return (
+      <div className="p-12 text-center">
+        <h2 className="text-xl font-bold text-slate-900 mb-2">Job Not Found</h2>
+        <p className="text-slate-500 mb-4">Redirecting you back to the list...</p>
+        <Button onClick={() => navigate(createPageUrl('JobEstimates'))}>
+          Go Back Now
+        </Button>
+      </div>
+    );
+  }
 
   // Financial Calculations
   const laborRate = job.labor_rate || 75;
