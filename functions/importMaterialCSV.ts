@@ -16,7 +16,9 @@ export default Deno.serve(async (req) => {
         const results = {
             suppliersCreated: 0,
             materialsCreated: 0,
-            pricesCreated: 0
+            pricesCreated: 0,
+            inventoryCreated: 0,
+            inventoryUpdated: 0
         };
 
         for (const row of dataRows) {
@@ -85,6 +87,38 @@ export default Deno.serve(async (req) => {
                         min_price: minPrice,
                         max_price: maxPrice
                     });
+                }
+            }
+
+            // 4. Handle Inventory Upsert
+            if (itemName) {
+                const quantity = parseFloat(rowData['quantity']) || 0;
+                const existingInventory = await base44.entities.Inventory.filter({ item_name: itemName });
+
+                if (existingInventory.length > 0) {
+                    // Upsert: Add to existing quantity
+                    const item = existingInventory[0];
+                    const currentQty = parseFloat(item.quantity) || 0;
+                    const newQty = currentQty + quantity;
+                    
+                    await base44.entities.Inventory.update(item.id, { 
+                        quantity: newQty,
+                        // Optionally update other fields if provided in CSV
+                        supplier_id: supplierId || item.supplier_id,
+                        material_library_id: materialId || item.material_library_id
+                    });
+                    results.inventoryUpdated++;
+                } else {
+                    // Create new inventory record
+                    await base44.entities.Inventory.create({
+                        item_name: itemName,
+                        quantity: quantity,
+                        unit: unit || 'each',
+                        supplier_id: supplierId || '',
+                        reorder_point: 5, // Default
+                        material_library_id: materialId
+                    });
+                    results.inventoryCreated++;
                 }
             }
         }
