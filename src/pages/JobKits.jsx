@@ -175,8 +175,11 @@ export default function JobKits() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-              <Button onClick={() => createKitMutation.mutate(newKit)} disabled={!newKit.name || createKitMutation.isPending}>
-                {createKitMutation.isPending ? 'Saving...' : 'Create Kit'}
+              <Button 
+                onClick={() => editingKitId ? updateKitMutation.mutate(newKit) : createKitMutation.mutate(newKit)} 
+                disabled={!newKit.name || createKitMutation.isPending || updateKitMutation.isPending}
+              >
+                {createKitMutation.isPending || updateKitMutation.isPending ? 'Saving...' : (editingKitId ? 'Save Changes' : 'Create Kit')}
               </Button>
             </DialogFooter>
           </DialogContent>
