@@ -23,6 +23,20 @@ export default Deno.serve(async (req) => {
 
         const batchId = crypto.randomUUID();
 
+        // PHASE 4: Rollback Strategy Documentation
+        // This process uses a unique 'batch_id' for all StockTransactions created in this session.
+        // ROLLBACK FEASIBILITY:
+        // To rollback an accidental import:
+        // 1. Query StockTransaction where batch_id == [batchId]
+        // 2. Iterate transactions: 
+        //    - If type 'restock': Deduct the quantity_change from Inventory
+        //    - If type 'manual_adjustment': Reverse the change
+        // 3. Delete the StockTransaction records
+        // 4. (Optional) Delete Inventory items created in this batch if their resulting quantity is 0
+        
+        // Note: We use list(null, 1000) to fetch inventory for matching to avoid duplicate creation on larger datasets
+        const allInventory = await base44.entities.Inventory.list(null, 1000);
+
         for (const row of dataRows) {
             const rowData = {};
             headers.forEach((header, index) => {
