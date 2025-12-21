@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Package, Trash2, Save, X, Pencil } from 'lucide-react';
+import { Plus, Package, Trash2, Save, X, Pencil, Download, Upload } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,10 @@ import { toast } from 'sonner';
 
 export default function JobKits() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importCsv, setImportCsv] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+
   const [formData, setFormData] = useState({ name: '', description: '', items: [] });
   const [editingId, setEditingId] = useState(null);
   const queryClient = useQueryClient();
@@ -87,6 +91,50 @@ export default function JobKits() {
     setFormData({ ...formData, items: updatedItems });
   };
 
+  const handleExport = async () => {
+      try {
+          toast.info("Generating CSV...");
+          const { data } = await base44.functions.invoke('exportJobKits');
+          const blob = new Blob([data], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `job_kits_export_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+          toast.success("Export complete");
+      } catch (e) {
+          console.error(e);
+          toast.error("Export failed: " + e.message);
+      }
+  };
+
+  const handleImport = async () => {
+      if (!importCsv.trim()) {
+          toast.error("Please paste CSV data");
+          return;
+      }
+      setIsImporting(true);
+      try {
+          const res = await base44.functions.invoke('importJobKits', { csvData: importCsv });
+          if (res.data.success) {
+              queryClient.invalidateQueries(['job-kits']);
+              setIsImportOpen(false);
+              setImportCsv('');
+              toast.success(`Imported ${res.data.kits_created} kits successfully`);
+          } else {
+              throw new Error(res.data.error || "Import failed");
+          }
+      } catch (e) {
+          console.error(e);
+          toast.error("Import error: " + (e.response?.data?.error || e.message));
+      } finally {
+          setIsImporting(false);
+      }
+  };
+
   const getInventoryName = (id) => inventory?.find(i => i.id === id)?.item_name || 'Unknown Item';
 
   return (
@@ -96,12 +144,51 @@ export default function JobKits() {
           <h1 className="text-3xl font-bold text-slate-900">Job Kits</h1>
           <p className="text-slate-500 mt-1">Manage bundled material kits for quick scoping</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={handleCreateOpen}>
-              <Plus className="w-4 h-4 mr-2" /> Create Kit
+        <div className="flex gap-2">
+            <Button 
+                variant="ghost" 
+                onClick={handleExport}
+                className="text-slate-600 hover:bg-slate-100"
+            >
+                <Download className="w-4 h-4 mr-2" /> Export CSV
             </Button>
-          </DialogTrigger>
+            
+            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="secondary" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm">
+                        <Upload className="w-4 h-4 mr-2" /> Import Kits
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Import Job Kits</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-slate-500">
+                            Paste CSV data with headers: <code className="bg-slate-100 px-1 rounded">KitName, Description, ItemName, Quantity</code>
+                        </p>
+                        <textarea 
+                            className="w-full h-48 p-3 text-xs font-mono border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            placeholder="KitName,Description,ItemName,Quantity&#10;Basic Bath,Rough-in kit,2x4 Stud,10&#10;Basic Bath,Rough-in kit,Drywall Sheet,5"
+                            value={importCsv}
+                            onChange={(e) => setImportCsv(e.target.value)}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsImportOpen(false)}>Cancel</Button>
+                        <Button onClick={handleImport} disabled={isImporting || !importCsv} className="bg-indigo-600 hover:bg-indigo-700">
+                            {isImporting ? 'Importing...' : 'Run Import'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+                <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-sm" onClick={handleCreateOpen}>
+                <Plus className="w-4 h-4 mr-2" /> Create Kit
+                </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Job Kit' : 'Create New Job Kit'}</DialogTitle>
