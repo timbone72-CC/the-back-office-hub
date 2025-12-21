@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Package, Trash2, Save, X } from 'lucide-react';
+import { Plus, Package, Trash2, Save, X, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 export default function JobKits() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newKit, setNewKit] = useState({ name: '', description: '', items: [] });
+  const [editingKitId, setEditingKitId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: inventory } = useQuery({
@@ -32,6 +33,17 @@ export default function JobKits() {
       setIsDialogOpen(false);
       setNewKit({ name: '', description: '', items: [] });
       toast.success('Job Kit created successfully');
+    },
+  });
+
+  const updateKitMutation = useMutation({
+    mutationFn: (data) => base44.entities.JobKit.update(editingKitId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['job-kits']);
+      setIsDialogOpen(false);
+      setNewKit({ name: '', description: '', items: [] });
+      setEditingKitId(null);
+      toast.success('Job Kit updated successfully');
     },
   });
 
