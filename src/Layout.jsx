@@ -135,6 +135,7 @@ export default function Layout({ children }) {
                   item.path.slice(1) === 'calculators' ? 'Calculators' :
                   item.path.slice(1) === 'procurement' ? 'MaterialProcurement' :
                   item.path.slice(1) === 'import' ? 'DataImport' :
+                  item.path.slice(1) === 'system-logs' ? 'SystemLogs' :
                   'ScheduleLeads'
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}
