@@ -48,6 +48,11 @@ export default function EstimateDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const { data: clients } = useQuery({
+    queryKey: ['clients-list'],
+    queryFn: () => base44.entities.ClientProfile.list('name', 100),
+  });
+
   const { data: estimate, isLoading } = useQuery({
     queryKey: ['estimate', estimateId],
     queryFn: async () => {
@@ -65,13 +70,40 @@ export default function EstimateDetail() {
     refetchOnWindowFocus: true
   });
 
+  const [formData, setFormData] = useState(null);
+
+  useEffect(() => {
+    if (estimateId && estimate) {
+      // Edit Mode
+      setFormData({
+        ...estimate,
+        items: estimate.items || [],
+        tax_rate: estimate.tax_rate || 0,
+        photos: estimate.photos || []
+      });
+    } else if (!estimateId) {
+      // New Mode
+      setFormData({
+        title: '',
+        client_profile_id: '',
+        status: 'draft',
+        date: new Date().toISOString().split('T')[0],
+        items: [],
+        tax_rate: 0,
+        subtotal: 0,
+        total_amount: 0,
+        photos: []
+      });
+    }
+  }, [estimate, estimateId]);
+
   const { data: client } = useQuery({
-    queryKey: ['client', estimate?.client_profile_id],
+    queryKey: ['client', formData?.client_profile_id],
     queryFn: async () => {
-       const res = await base44.entities.ClientProfile.filter({ id: estimate.client_profile_id });
+       const res = await base44.entities.ClientProfile.filter({ id: formData.client_profile_id });
        return res && res.length > 0 ? res[0] : null;
     },
-    enabled: !!estimate?.client_profile_id
+    enabled: !!formData?.client_profile_id
   });
 
   const { data: inventory } = useQuery({
@@ -79,18 +111,15 @@ export default function EstimateDetail() {
     queryFn: () => base44.entities.Inventory.list('item_name', 100)
   });
 
-  const [formData, setFormData] = useState(null);
-
-  useEffect(() => {
-    if (estimate) {
-      setFormData({
-        ...estimate,
-        items: estimate.items || [],
-        tax_rate: estimate.tax_rate || 0,
-        photos: estimate.photos || []
-      });
-    }
-  }, [estimate]);
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.JobEstimate.create(data),
+    onSuccess: (newRecord) => {
+      queryClient.invalidateQueries(['estimates']);
+      toast.success('Estimate created successfully');
+      navigate(`${createPageUrl('EstimateDetail')}?id=${newRecord.id}`, { replace: true });
+    },
+    onError: () => toast.error('Failed to create estimate')
+  });
 
   const updateMutation = useMutation({
     mutationFn: (data) => base44.entities.JobEstimate.update(estimateId, data),
@@ -102,6 +131,19 @@ export default function EstimateDetail() {
       toast.error('Failed to save estimate');
     }
   });
+
+  const handleSave = () => {
+    if (!formData.title || !formData.client_profile_id) {
+        toast.error("Please fill in Title and Client");
+        return;
+    }
+    
+    if (estimateId) {
+        updateMutation.mutate(formData);
+    } else {
+        createMutation.mutate(formData);
+    }
+  };
 
   const handleItemChange = (index, field, value) => {
     const newItems = [...formData.items];
@@ -200,7 +242,9 @@ export default function EstimateDetail() {
   };
 
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
-  if (!estimate && !isLoading) return (
+  
+  // Show Not Found only if we have an ID but it wasn't found
+  if (estimateId && !estimate && !isLoading) return (
     <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
       <h2 className="text-xl font-bold text-slate-900 mb-2">Estimate Not Found</h2>
       <p className="text-slate-500 mb-4">The estimate you are looking for does not exist or has been deleted.</p>
@@ -209,6 +253,7 @@ export default function EstimateDetail() {
       </Link>
     </div>
   );
+
   if (!formData) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
 
   return (
@@ -216,29 +261,63 @@ export default function EstimateDetail() {
       
       {/* Dynamic Header */}
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-1">
+        <div className="space-y-1 w-full md:w-auto">
           <div className="flex items-center gap-3 mb-2">
             <Link to={createPageUrl('JobEstimates')}>
                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 rounded-full -ml-2">
                  <ArrowLeft className="w-5 h-5 text-slate-400" />
                </Button>
             </Link>
-            <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
-              EST #{estimateId.slice(-6)}
-            </Badge>
-            <Badge className={
-               formData.status === 'approved' ? 'bg-green-100 text-green-700' :
-               formData.status === 'converted' ? 'bg-purple-100 text-purple-700' :
-               'bg-blue-50 text-blue-700'
-            }>
-              {formData.status.toUpperCase()}
-            </Badge>
+            {estimateId ? (
+                <>
+                <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+                EST #{estimateId.slice(-6)}
+                </Badge>
+                <Badge className={
+                formData.status === 'approved' ? 'bg-green-100 text-green-700' :
+                formData.status === 'converted' ? 'bg-purple-100 text-purple-700' :
+                'bg-blue-50 text-blue-700'
+                }>
+                {formData.status.toUpperCase()}
+                </Badge>
+                </>
+            ) : (
+                <Badge className="bg-indigo-100 text-indigo-700">NEW ESTIMATE</Badge>
+            )}
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">{client?.name || 'Unknown Client'}</h1>
-          <div className="flex items-center gap-2 text-slate-500 font-medium">
-             <FileText className="w-4 h-4" />
-             {formData.title}
-          </div>
+          
+          {/* Editable Title and Client for New Estimate */}
+          {!estimateId ? (
+              <div className="space-y-3 pt-1">
+                  <Input 
+                    value={formData.title} 
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    placeholder="Estimate Title (e.g. Bathroom Remodel)"
+                    className="text-2xl font-bold h-auto py-2 px-3 border-slate-200 focus:border-indigo-500"
+                  />
+                  <Select 
+                    value={formData.client_profile_id} 
+                    onValueChange={(val) => setFormData({...formData, client_profile_id: val})}
+                  >
+                    <SelectTrigger className="w-full md:w-[300px]">
+                      <SelectValue placeholder="Select Client..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients?.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+              </div>
+          ) : (
+              <>
+                <h1 className="text-3xl font-bold text-slate-900">{client?.name || 'Unknown Client'}</h1>
+                <div className="flex items-center gap-2 text-slate-500 font-medium">
+                    <FileText className="w-4 h-4" />
+                    {formData.title}
+                </div>
+              </>
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-4 w-full md:w-auto">
@@ -530,11 +609,11 @@ export default function EstimateDetail() {
               </div>
               <Button 
                 className="w-full mt-4 bg-slate-900 hover:bg-slate-800 gap-2"
-                onClick={() => updateMutation.mutate(formData)}
-                disabled={updateMutation.isPending}
+                onClick={handleSave}
+                disabled={updateMutation.isPending || createMutation.isPending}
               >
                 <Save className="w-4 h-4" /> 
-                {updateMutation.isPending ? 'Saving...' : 'Save Settings'}
+                {updateMutation.isPending || createMutation.isPending ? 'Saving...' : (estimateId ? 'Save Settings' : 'Create Estimate')}
               </Button>
             </CardContent>
           </Card>

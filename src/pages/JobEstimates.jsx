@@ -23,7 +23,6 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 export default function JobEstimates() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
 
@@ -44,14 +43,6 @@ export default function JobEstimates() {
   });
 
   const [activeTab, setActiveTab] = useState('estimates');
-
-  const [newEstimate, setNewEstimate] = useState({
-    client_profile_id: '',
-    title: '',
-    amount: '',
-    status: 'draft',
-    date: new Date().toISOString().split('T')[0]
-  });
 
   const navigate = useNavigate();
 
@@ -75,30 +66,6 @@ export default function JobEstimates() {
       toast.error("Failed to export data");
     }
   };
-
-  const createMutation = useMutation({
-    mutationFn: (data) => {
-        const payload = {
-            title: data.title,
-            client_profile_id: data.client_profile_id,
-            status: data.status,
-            date: data.date,
-            total_amount: parseFloat(data.amount) || 0,
-            items: []
-        };
-        return base44.entities.JobEstimate.create(payload);
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries(['estimates']);
-      setIsCreateOpen(false);
-      toast.success('Estimate created successfully');
-      navigate(`${createPageUrl('EstimateDetail')}?id=${data.id}`);
-    },
-    onError: (e) => {
-        console.error(e);
-        toast.error('Failed to create estimate');
-    }
-  });
 
   const getClientName = (id) => clients?.find(c => c.id === id)?.name || 'Unknown Client';
 
@@ -128,94 +95,12 @@ export default function JobEstimates() {
             <Download className="w-4 h-4 mr-2" />
             Export CSV
           </Button>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200">
-                <Plus className="w-4 h-4 mr-2" />
-                New Estimate
-              </Button>
-            </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Create New Estimate</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label>Client (Relationship)</Label>
-                <Select 
-                  value={newEstimate.client_profile_id} 
-                  onValueChange={(val) => setNewEstimate({...newEstimate, client_profile_id: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients?.map(client => (
-                      <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Estimate Title</Label>
-                <Input 
-                  id="title" 
-                  value={newEstimate.title} 
-                  onChange={(e) => setNewEstimate({...newEstimate, title: e.target.value})}
-                  placeholder="e.g. Kitchen Renovation"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount ($)</Label>
-                  <Input 
-                    id="amount" 
-                    type="number"
-                    value={newEstimate.amount} 
-                    onChange={(e) => setNewEstimate({...newEstimate, amount: e.target.value})}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
-                  <Input 
-                    id="date" 
-                    type="date"
-                    value={newEstimate.date} 
-                    onChange={(e) => setNewEstimate({...newEstimate, date: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select 
-                  value={newEstimate.status} 
-                  onValueChange={(val) => setNewEstimate({...newEstimate, status: val})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="sent">Sent</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={() => createMutation.mutate(newEstimate)}
-                disabled={!newEstimate.client_profile_id || !newEstimate.title || createMutation.isPending}
-                className="bg-indigo-600 text-white w-full sm:w-auto"
-              >
-                {createMutation.isPending ? 'Saving...' : 'Save Estimate'}
-              </Button>
-              </DialogFooter>
-              </DialogContent>
-              </Dialog>
+          <Link to={createPageUrl('EstimateDetail')}>
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200">
+              <Plus className="w-4 h-4 mr-2" />
+              New Estimate
+            </Button>
+          </Link>
               </div>
               </div>
 
