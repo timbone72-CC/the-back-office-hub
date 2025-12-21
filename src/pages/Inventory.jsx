@@ -99,17 +99,31 @@ export default function Inventory() {
   const adjustStockMutation = useMutation({
     mutationFn: async ({ id, amount, type, reason }) => {
       const item = inventory.find(i => i.id === id);
-      const newQty = item.quantity + parseFloat(amount);
       
+      // PHASE 4: Structural Improvement & Data Integrity
+      // 1. Strict Casting Guard
+      const delta = Number(amount);
+      if (isNaN(delta)) throw new Error("Invalid quantity amount");
+      
+      const newQty = item.quantity + delta;
+      
+      // 2. Batch ID for Auditability (Standardizing the Schema)
+      // Even single manual adjustments get a batch ID for consistent rollback querying
+      const batchId = crypto.randomUUID();
+
       // 1. Update Inventory
       await base44.entities.Inventory.update(id, { quantity: newQty });
       
       // 2. Log Transaction
+      // If this fails, we have a partial state (Inventory updated, Log missing).
+      // In a full refactor, this would move to a backend function. 
+      // For Phase 4 Repair, we ensure the data payload is at least valid.
       await base44.entities.StockTransaction.create({
         inventory_id: id,
-        quantity_change: parseFloat(amount),
+        quantity_change: delta,
         transaction_type: type,
         reference_note: reason || 'Manual adjustment',
+        batch_id: batchId, 
         date: new Date().toISOString()
       });
     },
