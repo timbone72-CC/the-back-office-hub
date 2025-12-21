@@ -45,10 +45,20 @@ export default function DataImport() {
       
       if (response.data.success) {
         setResult({ type: 'success', data: response.data.results });
-        toast.success("Import completed successfully!");
-        // Refresh UI
-        queryClient.invalidateQueries(['inventory-list']);
-        queryClient.invalidateQueries(['inventory']);
+        
+        // Phase 3: UI Consistency & Cache Sync
+        const toastId = toast.loading("Syncing with Database...");
+        
+        await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['inventory'] }),
+            queryClient.invalidateQueries({ queryKey: ['inventory-list'] }),
+            queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
+            queryClient.invalidateQueries({ queryKey: ['material_pricing'] }),
+            queryClient.invalidateQueries({ queryKey: ['material_library'] })
+        ]);
+        
+        toast.dismiss(toastId);
+        toast.success("Import completed & Synced!");
       } else {
         throw new Error(response.data.error || 'Import failed');
       }
