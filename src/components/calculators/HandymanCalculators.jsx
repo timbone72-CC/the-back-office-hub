@@ -753,3 +753,35 @@ function SpecsReference() {
     </Card>
   );
 }
+
+export default function HandymanCalculators() {
+  return (
+    <div className="w-full">
+      <Tabs defaultValue="framing" className="w-full">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 mb-4 h-auto">
+          <TabsTrigger value="framing" className="flex gap-1 text-xs"><Hammer className="w-3 h-3" /> Framing</TabsTrigger>
+          <TabsTrigger value="stairs" className="flex gap-1 text-xs"><ArrowUpDown className="w-3 h-3" /> Stairs</TabsTrigger>
+          <TabsTrigger value="concrete" className="flex gap-1 text-xs"><Box className="w-3 h-3" /> Concrete</TabsTrigger>
+          <TabsTrigger value="materials" className="flex gap-1 text-xs"><Package className="w-3 h-3" /> Materials</TabsTrigger>
+          <TabsTrigger value="drywall" className="flex gap-1 text-xs"><Frame className="w-3 h-3" /> Drywall</TabsTrigger>
+          <TabsTrigger value="paint" className="flex gap-1 text-xs"><PaintBucket className="w-3 h-3" /> Paint</TabsTrigger>
+          <TabsTrigger value="trim" className="flex gap-1 text-xs"><Ruler className="w-3 h-3" /> Trim</TabsTrigger>
+          <TabsTrigger value="layout" className="flex gap-1 text-xs"><Triangle className="w-3 h-3" /> Layout</TabsTrigger>
+          <TabsTrigger value="conversions" className="flex gap-1 text-xs"><ArrowRightLeft className="w-3 h-3" /> Convert</TabsTrigger>
+          <TabsTrigger value="specs" className="flex gap-1 text-xs"><FileText className="w-3 h-3" /> Specs</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="framing"><FramingCalculator /></TabsContent>
+        <TabsContent value="stairs"><StairsCalculator /></TabsContent>
+        <TabsContent value="concrete"><ConcreteCalculator /></TabsContent>
+        <TabsContent value="materials"><MaterialsCalculator /></TabsContent>
+        <TabsContent value="drywall"><DrywallCalculator /></TabsContent>
+        <TabsContent value="paint"><PaintCalculator /></TabsContent>
+        <TabsContent value="trim"><TrimCalculator /></TabsContent>
+        <TabsContent value="layout"><LayoutCalculator /></TabsContent>
+        <TabsContent value="conversions"><ConversionsCalculator /></TabsContent>
+        <TabsContent value="specs"><SpecsReference /></TabsContent>
+      </Tabs>
+    </div>
+  );
+}
