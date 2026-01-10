@@ -688,34 +688,127 @@ function SpecsReference() {
   );
 }
 
-export default function HandymanCalculators() {
+// Specs Reference
+function SpecsReference() {
   return (
-    <div className="w-full">
-      <Tabs defaultValue="framing" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-10 mb-4 h-auto">
-          <TabsTrigger value="framing" className="flex gap-1 text-xs"><Hammer className="w-3 h-3" /> Framing</TabsTrigger>
-          <TabsTrigger value="stairs" className="flex gap-1 text-xs"><ArrowUpDown className="w-3 h-3" /> Stairs</TabsTrigger>
-          <TabsTrigger value="concrete" className="flex gap-1 text-xs"><Box className="w-3 h-3" /> Concrete</TabsTrigger>
-          <TabsTrigger value="materials" className="flex gap-1 text-xs"><Package className="w-3 h-3" /> Materials</TabsTrigger>
-          <TabsTrigger value="drywall" className="flex gap-1 text-xs"><Frame className="w-3 h-3" /> Drywall</TabsTrigger>
-          <TabsTrigger value="paint" className="flex gap-1 text-xs"><PaintBucket className="w-3 h-3" /> Paint</TabsTrigger>
-          <TabsTrigger value="trim" className="flex gap-1 text-xs"><Ruler className="w-3 h-3" /> Trim</TabsTrigger>
-          <TabsTrigger value="layout" className="flex gap-1 text-xs"><Triangle className="w-3 h-3" /> Layout</TabsTrigger>
-          <TabsTrigger value="conversions" className="flex gap-1 text-xs"><ArrowRightLeft className="w-3 h-3" /> Convert</TabsTrigger>
-          <TabsTrigger value="specs" className="flex gap-1 text-xs"><FileText className="w-3 h-3" /> Specs</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="framing"><FramingCalculator /></TabsContent>
-        <TabsContent value="stairs"><StairsCalculator /></TabsContent>
-        <TabsContent value="concrete"><ConcreteCalculator /></TabsContent>
-        <TabsContent value="materials"><MaterialsCalculator /></TabsContent>
-        <TabsContent value="drywall"><DrywallCalculator /></TabsContent>
-        <TabsContent value="paint"><PaintCalculator /></TabsContent>
-        <TabsContent value="trim"><TrimCalculator /></TabsContent>
-        <TabsContent value="layout"><LayoutCalculator /></TabsContent>
-        <TabsContent value="conversions"><ConversionsCalculator /></TabsContent>
-        <TabsContent value="specs"><SpecsReference /></TabsContent>
-      </Tabs>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Reference Tables & IRC Standards</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-3">
+          <h3 className="font-semibold">Common Lumber Sizes (Nominal vs Actual)</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>2×4:</strong> Actual 1.5" × 3.5"</p>
+            <p className="mb-1"><strong>2×6:</strong> Actual 1.5" × 5.5"</p>
+            <p className="mb-1"><strong>2×8:</strong> Actual 1.5" × 7.25"</p>
+            <p className="mb-1"><strong>2×10:</strong> Actual 1.5" × 9.25"</p>
+            <p className="mb-1"><strong>2×12:</strong> Actual 1.5" × 11.25"</p>
+            <p className="mb-1"><strong>4×4:</strong> Actual 3.5" × 3.5"</p>
+            <p className="mb-1"><strong>1×4:</strong> Actual 0.75" × 3.5"</p>
+            <p><strong>1×6:</strong> Actual 0.75" × 5.5"</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">IRC Stair Requirements</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Max Riser Height:</strong> 7.75"</p>
+            <p className="mb-1"><strong>Min Tread Depth:</strong> 10"</p>
+            <p className="mb-1"><strong>Min Headroom:</strong> 6' 8"</p>
+            <p className="mb-1"><strong>Min Width:</strong> 36"</p>
+            <p className="mb-1"><strong>Max Variation:</strong> 3/8" between risers/treads</p>
+            <p><strong>Handrail Height:</strong> 34" - 38"</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">IRC Deck Requirements</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Guard Height (30"+ drop):</strong> 36" minimum</p>
+            <p className="mb-1"><strong>Baluster Spacing:</strong> 4" max</p>
+            <p className="mb-1"><strong>Joist Spacing:</strong> 16" OC typical</p>
+            <p className="mb-1"><strong>Ledger Bolts:</strong> 1/2" diameter minimum</p>
+            <p><strong>Post Spacing:</strong> 6-8 feet typical</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">Fastener Schedule</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Joist to Sill:</strong> 3-8d toenails or 2-16d face nails</p>
+            <p className="mb-1"><strong>Top Plate Laps:</strong> 2-16d nails min</p>
+            <p className="mb-1"><strong>Stud to Plate:</strong> 4-8d toenails or 2-16d end nails</p>
+            <p className="mb-1"><strong>Sheathing:</strong> 8d common, 6" edges, 12" field</p>
+            <p><strong>Drywall Screws:</strong> Type W, 1-1/4" minimum</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">Spacing Standards</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Wall Studs:</strong> 16" or 24" OC</p>
+            <p className="mb-1"><strong>Floor Joists:</strong> 12", 16", or 24" OC</p>
+            <p className="mb-1"><strong>Roof Rafters:</strong> 12", 16", 19.2", or 24" OC</p>
+            <p><strong>Drywall Screws:</strong> 12" OC ceiling, 16" OC walls</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">Concrete Reference</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Sidewalk Thickness:</strong> 4"</p>
+            <p className="mb-1"><strong>Driveway Thickness:</strong> 4-6"</p>
+            <p className="mb-1"><strong>Garage Slab:</strong> 4-6"</p>
+            <p className="mb-1"><strong>60lb Bag Yields:</strong> 0.45 cu ft</p>
+            <p className="mb-1"><strong>80lb Bag Yields:</strong> 0.60 cu ft</p>
+            <p><strong>Standard Mix:</strong> 3000-4000 PSI</p>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">Roof Pitch Multipliers</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm grid grid-cols-2 gap-x-4">
+            <div>
+              <p className="mb-1"><strong>Flat:</strong> 1.000</p>
+              <p className="mb-1"><strong>2/12:</strong> 1.014</p>
+              <p className="mb-1"><strong>4/12:</strong> 1.054</p>
+              <p className="mb-1"><strong>6/12:</strong> 1.118</p>
+            </div>
+            <div>
+              <p className="mb-1"><strong>8/12:</strong> 1.202</p>
+              <p className="mb-1"><strong>10/12:</strong> 1.302</p>
+              <p className="mb-1"><strong>12/12:</strong> 1.414</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t my-4"></div>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold">Coverage Estimates</h3>
+          <div className="bg-slate-50 p-4 rounded-lg text-sm">
+            <p className="mb-1"><strong>Paint (per gallon):</strong> 350-400 sq ft</p>
+            <p className="mb-1"><strong>Stain (per gallon):</strong> 200-300 sq ft</p>
+            <p className="mb-1"><strong>Drywall Tape Roll:</strong> 500 sq ft</p>
+            <p className="mb-1"><strong>Joint Compound (gal):</strong> 100 sq ft</p>
+            <p className="mb-1"><strong>Shingle Bundle:</strong> 33 sq ft</p>
+            <p><strong>Roofing Square:</strong> 100 sq ft</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
