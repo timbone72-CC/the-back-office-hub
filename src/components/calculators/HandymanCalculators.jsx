@@ -1267,6 +1267,49 @@ function LayoutCalculator({ onSave }) {
   );
 }
 
+// --- PASTE THIS CODE ---
+
+const SpecsReference = () => {
+  return React.createElement("div", { className: "p-4 space-y-6" },
+    React.createElement("div", { className: "bg-white p-4 rounded shadow" },
+      React.createElement("h3", { className: "font-bold text-lg mb-4" }, "📏 Standard Lumber Sizes"),
+      React.createElement("table", { className: "w-full text-sm border-collapse" },
+        React.createElement("thead", null,
+          React.createElement("tr", { className: "bg-gray-100" },
+            React.createElement("th", { className: "border p-2 text-left" }, "Nominal"),
+            React.createElement("th", { className: "border p-2 text-left" }, "Actual Size")
+          )
+        ),
+        React.createElement("tbody", null,
+          [
+            { n: "1x4", a: '0.75" x 3.5"' },
+            { n: "2x4", a: '1.5" x 3.5"' },
+            { n: "2x6", a: '1.5" x 5.5"' },
+            { n: "2x8", a: '1.5" x 7.25"' },
+            { n: "4x4", a: '3.5" x 3.5"' }
+          ].map((item, idx) => 
+            React.createElement("tr", { key: idx },
+              React.createElement("td", { className: "border p-2" }, item.n),
+              React.createElement("td", { className: "border p-2" }, item.a)
+            )
+          )
+        )
+      )
+    ),
+    React.createElement("div", { className: "bg-white p-4 rounded shadow" },
+      React.createElement("h3", { className: "font-bold text-lg mb-2" }, "📜 Quick IRC Codes"),
+      React.createElement("ul", { className: "list-disc pl-5 text-sm space-y-2" },
+        React.createElement("li", null, "Stair Rise: Max 7-3/4\""),
+        React.createElement("li", null, "Stair Run: Min 10\""),
+        React.createElement("li", null, "Hallway Width: Min 36\""),
+        React.createElement("li", null, "Guardrail Height: Min 36\"")
+      )
+    )
+  );
+};
+
+// --- END PASTE ---
+
 // CONVERSIONS CALCULATOR
 function ConversionsCalculator() {
   const [fraction, setFraction] = useState({ numerator: '', denominator: '' });
