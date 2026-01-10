@@ -629,64 +629,6 @@ function ConversionsCalculator() {
   );
 }
 
-function SpecsReference() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Reference Tables & IRC Standards</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-3">
-          <h3 className="font-semibold">Common Lumber Sizes</h3>
-          <div className="bg-slate-50 p-4 rounded-lg text-sm">
-            <p className="mb-1"><strong>2x4:</strong> Actual 1.5" x 3.5"</p>
-            <p className="mb-1"><strong>2x6:</strong> Actual 1.5" x 5.5"</p>
-            <p className="mb-1"><strong>2x8:</strong> Actual 1.5" x 7.25"</p>
-            <p className="mb-1"><strong>2x10:</strong> Actual 1.5" x 9.25"</p>
-            <p><strong>2x12:</strong> Actual 1.5" x 11.25"</p>
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-3">
-          <h3 className="font-semibold">IRC Stair Requirements</h3>
-          <div className="bg-slate-50 p-4 rounded-lg text-sm">
-            <p className="mb-1"><strong>Max Riser Height:</strong> 7.75"</p>
-            <p className="mb-1"><strong>Min Tread Depth:</strong> 10"</p>
-            <p className="mb-1"><strong>Min Headroom:</strong> 6'8"</p>
-            <p><strong>Max Variation:</strong> 3/8" between risers/treads</p>
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-3">
-          <h3 className="font-semibold">Fastener Schedule</h3>
-          <div className="bg-slate-50 p-4 rounded-lg text-sm">
-            <p className="mb-1"><strong>Joist to Sill:</strong> 3-8d toenails or 2-16d face nails</p>
-            <p className="mb-1"><strong>Top Plate Laps:</strong> 2-16d nails min 24" OC</p>
-            <p className="mb-1"><strong>Stud to Plate:</strong> 4-8d toenails or 2-16d end nails</p>
-            <p><strong>Drywall Screws:</strong> Type W, 1-1/4" min</p>
-          </div>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-3">
-          <h3 className="font-semibold">Spacing Standards</h3>
-          <div className="bg-slate-50 p-4 rounded-lg text-sm">
-            <p className="mb-1"><strong>Wall Studs:</strong> 16" or 24" OC</p>
-            <p className="mb-1"><strong>Floor Joists:</strong> 12", 16", or 24" OC</p>
-            <p className="mb-1"><strong>Roof Rafters:</strong> 12", 16", 19.2", or 24" OC</p>
-            <p><strong>Drywall Screws:</strong> 12" OC ceiling, 16" OC walls</p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // Specs Reference
 function SpecsReference() {
   return (
