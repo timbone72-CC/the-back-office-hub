@@ -15,17 +15,14 @@ function FramingCalculator() {
   const [results, setResults] = useState(null);
 
   const calculateStuds = () => {
-    // Placeholder calculation
     setResults({ type: 'studs', count: 0, message: 'Calculation pending' });
   };
 
   const calculateRafters = () => {
-    // Placeholder calculation
     setResults({ type: 'rafters', length: 0, message: 'Calculation pending' });
   };
 
   const calculateHeader = () => {
-    // Placeholder calculation
     setResults({ type: 'header', size: '', message: 'Calculation pending' });
   };
 
@@ -101,7 +98,6 @@ function StairsCalculator() {
   const [results, setResults] = useState(null);
 
   const calculate = () => {
-    // Placeholder calculation
     setResults({ steps: 0, riserHeight: 0, treadDepth: 0, message: 'Calculation pending' });
   };
 
@@ -138,7 +134,6 @@ function ConcreteCalculator() {
   const [results, setResults] = useState(null);
 
   const calculate = () => {
-    // Placeholder calculation
     setResults({ cubicYards: 0, bags: 0, message: 'Calculation pending' });
   };
 
@@ -181,17 +176,14 @@ function MaterialsCalculator() {
   const [results, setResults] = useState(null);
 
   const calculateBoardFeet = () => {
-    // Placeholder calculation
     setResults({ type: 'boardFeet', total: 0, message: 'Calculation pending' });
   };
 
   const calculateRoofing = () => {
-    // Placeholder calculation
     setResults({ type: 'roofing', squares: 0, message: 'Calculation pending' });
   };
 
   const calculateDecking = () => {
-    // Placeholder calculation
     setResults({ type: 'decking', boards: 0, message: 'Calculation pending' });
   };
 
@@ -283,7 +275,6 @@ function DrywallCalculator() {
   const [results, setResults] = useState(null);
 
   const calculate = () => {
-    // Placeholder calculation
     setResults({ sheets: 0, compound: 0, tape: 0, message: 'Calculation pending' });
   };
 
@@ -334,7 +325,6 @@ function PaintCalculator() {
   const [results, setResults] = useState(null);
 
   const calculate = () => {
-    // Placeholder calculation
     setResults({ gallons: 0, message: 'Calculation pending' });
   };
 
@@ -383,17 +373,14 @@ function TrimCalculator() {
   const [results, setResults] = useState(null);
 
   const calculateMiter = () => {
-    // Placeholder calculation
     setResults({ type: 'miter', cut: 0, message: 'Calculation pending' });
   };
 
   const calculateCrown = () => {
-    // Placeholder calculation
     setResults({ type: 'crown', linearFeet: 0, message: 'Calculation pending' });
   };
 
   const calculateBaseboard = () => {
-    // Placeholder calculation
     setResults({ type: 'baseboard', linearFeet: 0, message: 'Calculation pending' });
   };
 
@@ -469,17 +456,14 @@ function LayoutCalculator() {
   const [results, setResults] = useState(null);
 
   const calculateDiagonal = () => {
-    // Placeholder calculation
     setResults({ type: 'diagonal', length: 0, message: 'Calculation pending' });
   };
 
   const calculateSlope = () => {
-    // Placeholder calculation
     setResults({ type: 'slope', ratio: '', message: 'Calculation pending' });
   };
 
   const calculateTriangle = () => {
-    // Placeholder calculation
     setResults({ type: 'triangle', sides: [], message: 'Calculation pending' });
   };
 
@@ -551,17 +535,14 @@ function ConversionsCalculator() {
   const [results, setResults] = useState(null);
 
   const convertFraction = () => {
-    // Placeholder calculation
     setResults({ type: 'fraction', decimal: 0, message: 'Calculation pending' });
   };
 
   const convertFeetInches = () => {
-    // Placeholder calculation
     setResults({ type: 'feetInches', decimal: 0, message: 'Calculation pending' });
   };
 
   const convertMetric = () => {
-    // Placeholder calculation
     setResults({ type: 'metric', converted: 0, message: 'Calculation pending' });
   };
 
