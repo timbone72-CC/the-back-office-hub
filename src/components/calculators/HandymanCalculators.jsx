@@ -1247,7 +1247,6 @@ function LayoutCalculator({ onSave }) {
               onChange={(e) => setTriangle({...triangle, unit: e.target.value})}
             >
               <option value="1">1× (3-4-5)</option>
-              <option
               <option value="2">2× (6-8-10)</option>
               <option value="3">3× (9-12-15)</option>
               <option value="4">4× (12-16-20)</option>
