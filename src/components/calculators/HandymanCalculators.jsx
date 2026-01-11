@@ -241,3 +241,99 @@ function ConcreteCalculator({ onSave }) {
     </Card>
   );
 }
+
+// --- DRYWALL CALCULATOR ---
+function DrywallCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({
+    length: '',
+    width: '',
+    height: '8',
+  });
+
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length);
+    const w = parseFloat(inputs.width);
+    const h = parseFloat(inputs.height);
+
+    if (!l || !w || !h) return;
+
+    const wallArea = 2 * (l + w) * h;
+    const ceilingArea = l * w;
+    const totalArea = wallArea + ceilingArea;
+
+    const sheets4x8 = Math.ceil(totalArea / 32);
+
+    setResults({
+      sheets: sheets4x8,
+      description: `Drywall: ${l}' × ${w}' room`,
+      message: `Total Area: ${Math.round(
+        totalArea
+      )} sq ft | 4×8 Sheets: ${sheets4x8}`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Drywall</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <Label>Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) =>
+                setInputs({ ...inputs, length: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Width (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.width}
+              onChange={(e) =>
+                setInputs({ ...inputs, width: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Height (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.height}
+              onChange={(e) =>
+                setInputs({ ...inputs, height: e.target.value })
+              }
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.sheets}
+              unitLabel="Price per Sheet ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
