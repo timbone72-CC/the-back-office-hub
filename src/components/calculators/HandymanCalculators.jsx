@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, CheckCircle2 } from 'lucide-react';
 
+const { JobEstimate } = base44.entities;
+
 // ========== SECTION 2: REGIONAL PRICING CONFIG ==========
 const REGIONAL_PRICING = {
   region: 'Elk City, OK',
