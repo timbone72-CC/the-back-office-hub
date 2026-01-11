@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, CheckCircle2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';  // ✅ Correct import
+import { base44 } from '@/api/base44Client';
+
 // ========== SECTION 2: REGIONAL PRICING CONFIG ==========
 const REGIONAL_PRICING = {
   region: 'Elk City, OK',
@@ -32,20 +33,12 @@ const CALCULATOR_OPTIONS = [
 const NumericInput = ({ value, onChange, placeholder, disabled, className }) => {
   const handleChange = (e) => {
     const val = e.target.value;
-    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+    if (val === '' || /^\d*.?\d*$/.test(val)) {
       onChange(val);
     }
   };
   return (
-    <Input 
-      type="text" 
-      inputMode="decimal"
-      value={value} 
-      onChange={handleChange} 
-      placeholder={placeholder} 
-      disabled={disabled} 
-      className={className} 
-    />
+    <Input type="text" inputMode="decimal" value={value} onChange={handleChange} placeholder={placeholder} disabled={disabled} className={className} />
   );
 };
 
@@ -60,8 +53,8 @@ function FramingCalculator({ onSave, saving, laborRate }) {
     const spacing = parseFloat(inputs.spacing);
     if (!len || !spacing) return;
     const studs = Math.ceil((len * 12) / spacing) + 1;
-    setResults({ 
-      qty: studs, 
+    setResults({
+      qty: studs,
       desc: `Wall Studs (${len}ft @ ${spacing}" OC)`,
       laborHours: (len / 10).toFixed(2)
     });
@@ -74,20 +67,20 @@ function FramingCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Length (ft)</Label>
-            <NumericInput 
-              placeholder="Wall length" 
-              value={inputs.length} 
-              onChange={(v) => setInputs({ ...inputs, length: v })} 
-              disabled={saving} 
+            <NumericInput
+              placeholder="Wall length"
+              value={inputs.length}
+              onChange={(v) => setInputs({ ...inputs, length: v })}
+              disabled={saving}
             />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Spacing (in)</Label>
-            <NumericInput 
-              placeholder="Stud spacing" 
-              value={inputs.spacing} 
-              onChange={(v) => setInputs({ ...inputs, spacing: v })} 
-              disabled={saving} 
+            <NumericInput
+              placeholder="Stud spacing"
+              value={inputs.spacing}
+              onChange={(v) => setInputs({ ...inputs, spacing: v })}
+              disabled={saving}
             />
           </div>
         </div>
@@ -96,30 +89,30 @@ function FramingCalculator({ onSave, saving, laborRate }) {
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded space-y-3">
             <p className="text-sm font-bold">Studs Needed: {results.qty}</p>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-framing" 
+              <input
+                type="checkbox"
+                checked={includeLabor}
+                onChange={(e) => setIncludeLabor(e.target.checked)}
+                id="labor-framing"
               />
               <Label htmlFor="labor-framing" className="text-xs cursor-pointer">
                 Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
               </Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput 
-                placeholder="Cost per stud" 
-                value={inputs.cost} 
-                onChange={(v) => setInputs({...inputs, cost: v})} 
-                disabled={saving} 
+              <NumericInput
+                placeholder="Cost per stud"
+                value={inputs.cost}
+                onChange={(v) => setInputs({...inputs, cost: v})}
+                disabled={saving}
               />
-              <Button 
+              <Button
                 onClick={() => onSave(
-                  results.desc, 
-                  results.qty, 
-                  inputs.cost, 
+                  results.desc,
+                  results.qty,
+                  inputs.cost,
                   includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )} 
+                )}
                 disabled={saving || !inputs.cost}
               >
                 <Save className="w-4 h-4" />
@@ -459,15 +452,15 @@ function StairsCalculator({ onSave, saving, laborRate }) {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs text-gray-500">Tread $</Label>
+                <Label className="text-xs text-gray-500">Tread</Label>
                 <NumericInput placeholder="Each" value={inputs.treadCost} onChange={(v) => setInputs({...inputs, treadCost: v})} disabled={saving} />
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Riser $</Label>
+                <Label className="text-xs text-gray-500">Riser</Label>
                 <NumericInput placeholder="Each" value={inputs.riserCost} onChange={(v) => setInputs({...inputs, riserCost: v})} disabled={saving} />
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Stringer $</Label>
+                <Label className="text-xs text-gray-500">Stringer</Label>
                 <NumericInput placeholder="Each" value={inputs.stringerCost} onChange={(v) => setInputs({...inputs, stringerCost: v})} disabled={saving} />
               </div>
             </div>
@@ -572,17 +565,12 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [laborRate, setLaborRate] = useState(REGIONAL_PRICING.labor.default);
 
-  // ========== Effect: Fetch estimates using global base44 ==========
+  // ========== Effect: Fetch estimates using imported base44 ==========
   useEffect(() => {
     const fetchEstimates = async () => {
       try {
-        // Access base44 from global scope (injected by Base44 runtime)
-        if (typeof base44 === 'undefined' || !base44.entities?.JobEstimate) {
-          console.error('base44.entities.JobEstimate not available');
-          return;
-        }
         const res = await base44.entities.JobEstimate.list();
-        const filtered = (res || []).filter(e => 
+        const filtered = (res || []).filter(e =>
           e.status === 'draft' || e.status === 'sent'
         );
         setEstimates(filtered);
@@ -594,74 +582,74 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     fetchEstimates();
   }, []);
 
-// ========== Handler: Save item to selected estimate ==========
-const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
-  if (!selectedEstimateId) {
-    alert('Please select an estimate first');
-    return;
-  }
-  if (saving) return;
+  // ========== Handler: Save item to selected estimate ==========
+  const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
+    if (!selectedEstimateId) {
+      alert('Please select an estimate first');
+      return;
+    }
+    if (saving) return;
 
-  const q = parseFloat(qty);
-  const c = parseFloat(cost);
-  if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
-    alert('Invalid quantity or cost');
-    return;
-  }
-
-  setSaving(true);
-  try {
-    // FETCH: Use .filter() to get the estimate
-    const res = await base44.entities.JobEstimate.filter({ _id: selectedEstimateId });
-    const est = res && res.length > 0 ? res[0] : null;
-    
-    if (!est) {
-      alert('Estimate not found');
-      setSaving(false);
+    const q = parseFloat(qty);
+    const c = parseFloat(cost);
+    if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
+      alert('Invalid quantity or cost');
       return;
     }
 
-    // Ensure items array exists
-    if (!est.items) est.items = [];
+    setSaving(true);
+    try {
+      // FIX: Use id instead of _id for filtering
+      const res = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
+      const est = res && res.length > 0 ? res[0] : null;
 
-    // Add material item
-    est.items.push({ 
-      description: desc, 
-      quantity: q, 
-      unit_cost: c, 
-      total: q * c 
-    });
-
-    // Add labor item if applicable
-    if (laborObj) {
-      const lh = parseFloat(laborObj.hours);
-      const lr = parseFloat(laborObj.rate);
-      if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
-        est.items.push({ 
-          description: `Labor: ${desc}`, 
-          quantity: lh, 
-          unit_cost: lr, 
-          total: lh * lr 
-        });
+      if (!est) {
+        alert('Estimate not found');
+        setSaving(false);
+        return;
       }
+
+      // Ensure items array exists
+      if (!est.items) est.items = [];
+
+      // Add material item
+      est.items.push({ 
+        description: desc, 
+        quantity: q, 
+        unit_cost: c, 
+        total: q * c 
+      });
+
+      // Add labor item if applicable
+      if (laborObj) {
+        const lh = parseFloat(laborObj.hours);
+        const lr = parseFloat(laborObj.rate);
+        if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
+          est.items.push({ 
+            description: `Labor: ${desc}`, 
+            quantity: lh, 
+            unit_cost: lr, 
+            total: lh * lr 
+          });
+        }
+      }
+
+      // Recalculate totals
+      est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
+      est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
+
+      // UPDATE pattern
+      await base44.entities.JobEstimate.update(selectedEstimateId, est);
+
+      // Show success feedback
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    } finally {
+      setSaving(false);
     }
-
-    // Recalculate totals
-    est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
-    est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
-
-    // UPDATE: Use .update(id, data) pattern
-    await base44.entities.JobEstimate.update(selectedEstimateId, est);
-
-    // Show success feedback
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
-  } catch (err) {
-    alert('Error saving: ' + err.message);
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   // ========== Renderer: Active calculator ==========
   const renderActiveCalculator = () => {
@@ -705,8 +693,9 @@ const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
               disabled={saving}
             >
               <option value="">-- Select Estimate --</option>
+              {/* FIX: Use id fallback for key and value */}
               {estimates.map(e => (
-              <option key={e._id || e.id} value={e._id || e.id}>{e.title}</option>
+                <option key={e._id || e.id} value={e._id || e.id}>{e.title}</option>
               ))}
             </select>
           </div>
