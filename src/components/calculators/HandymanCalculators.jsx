@@ -3,17 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { Save } from 'lucide-react';
 
-// --- 1. THE MONEY BOX COMPONENT ---
+// --- 1. THE MONEY BOX (Connects Math to Money) ---
 function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   const [unitCost, setUnitCost] = useState('');
 
   const handleSave = () => {
-    if (!unitCost) {
-      alert("Please enter a unit cost");
-      return;
-    }
+    if (!unitCost) { alert("Please enter a unit cost"); return; }
     onSave(description, quantity, unitCost);
     setUnitCost('');
   };
@@ -23,16 +21,10 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
       <div className="flex gap-2 items-end">
         <div className="flex-1">
           <Label className="text-xs text-green-800">{unitLabel || 'Unit Cost ($)'}</Label>
-          <Input 
-            type="number" 
-            placeholder="0.00" 
-            value={unitCost}
-            onChange={(e) => setUnitCost(e.target.value)}
-            className="bg-white"
-          />
+          <Input type="number" placeholder="0.00" value={unitCost} onChange={(e) => setUnitCost(e.target.value)} className="bg-white" />
         </div>
         <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 gap-1">
-          <Save className="w-4 h-4" /> Add to Estimate
+          <Save className="w-4 h-4" /> Add
         </Button>
       </div>
       <p className="text-xs text-green-600 mt-1">Qty: {quantity} | {description}</p>
@@ -40,55 +32,36 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   );
 }
 
-// --- 2. CONCRETE CALCULATOR ---
-function ConcreteCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({ length: '', width: '', depth: '4' });
+// --- 2. FRAMING CALCULATOR (Studs & Rafters) ---
+function FramingCalculator({ onSave }) {
+  const [studInputs, setStudInputs] = useState({ wallLength: '', studSpacing: '16' });
   const [results, setResults] = useState(null);
 
-  const calculate = () => {
-    const length = parseFloat(inputs.length);
-    const width = parseFloat(inputs.width);
-    const depthInches = parseFloat(inputs.depth);
-    
-    if (!length || !width || !depthInches) {
-      setResults({ message: 'Please enter all dimensions' });
-      return;
-    }
-    
-    const depthFeet = depthInches / 12;
-    const cubicFeet = length * width * depthFeet;
-    const cubicYards = cubicFeet / 27;
-    const cubicYardsWithWaste = cubicYards * 1.1;
-    const bags80lb = Math.ceil(cubicFeet / 0.6);
-    
+  const calculateStuds = () => {
+    const len = parseFloat(studInputs.wallLength);
+    const spacing = parseFloat(studInputs.studSpacing);
+    if (!len) return;
+    const studs = Math.ceil((len * 12) / spacing) + 1; // Basic stud calc
     setResults({ 
-      bags80lb,
-      description: `Concrete Slab: ${length}'x${width}'x${depthInches}" (${Math.round(cubicYardsWithWaste * 100) / 100} cu yd)`,
-      message: `Volume: ${Math.round(cubicYards * 100) / 100} cu yd | 80lb Bags Needed: ${bags80lb}`
+      type: 'studs', quantity: studs, 
+      description: `Wall Studs: ${len}ft wall @ ${spacing}" OC`,
+      message: `Studs needed: ${studs}`
     });
   };
 
   return (
     <Card>
-      <CardHeader><CardTitle>Concrete Calculator</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Framing</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <div><Label>Length (ft)</Label><Input type="number" value={inputs.length} onChange={(e) => setInputs({...inputs, length: e.target.value})} /></div>
-          <div><Label>Width (ft)</Label><Input type="number" value={inputs.width} onChange={(e) => setInputs({...inputs, width: e.target.value})} /></div>
-          <div className="col-span-2"><Label>Depth (in)</Label><Input type="number" value={inputs.depth} onChange={(e) => setInputs({...inputs, depth: e.target.value})} /></div>
+          <div><Label>Wall Len (ft)</Label><Input type="number" value={studInputs.wallLength} onChange={(e) => setStudInputs({...studInputs, wallLength: e.target.value})} /></div>
+          <div><Label>Spacing (in)</Label><Input type="number" value={studInputs.studSpacing} onChange={(e) => setStudInputs({...studInputs, studSpacing: e.target.value})} /></div>
         </div>
-        <Button onClick={calculate} className="w-full">Calculate</Button>
-        
-        {results && results.bags80lb && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h4 className="font-semibold text-green-800">Results:</h4>
-            <p className="text-sm text-green-700 mb-2">{results.message}</p>
-            <SaveToEstimatePanel 
-              description={results.description}
-              quantity={results.bags80lb}
-              unitLabel="Price per 80lb Bag ($)"
-              onSave={onSave}
-            />
+        <Button onClick={calculateStuds} className="w-full">Calculate Studs</Button>
+        {results && results.type === 'studs' && (
+          <div className="mt-4 p-4 bg-green-50 rounded border border-green-200">
+            <p className="text-sm font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.quantity} unitLabel="Price per Stud ($)" onSave={onSave} />
           </div>
         )}
       </CardContent>
@@ -96,64 +69,73 @@ function ConcreteCalculator({ onSave }) {
   );
 }
 
-// --- 3. MAIN EXPORT (THE SHELL) ---
-export default function HandymanCalculators({ preSelectedEstimateId }) {
-  const [estimates, setEstimates] = React.useState([]);
-  const [selectedEstimateId, setSelectedEstimateId] = React.useState(preSelectedEstimateId || '');
+// --- 3. STAIRS CALCULATOR ---
+function StairsCalculator({ onSave }) {
+  const [rise, setRise] = useState('');
+  const [results, setResults] = useState(null);
 
-  React.useEffect(() => {
-    const fetchEstimates = async () => {
-      try {
-        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
-        setEstimates(res || []);
-        if (preSelectedEstimateId) setSelectedEstimateId(preSelectedEstimateId);
-      } catch (e) { console.error(e); }
-    };
-    fetchEstimates();
-  }, [preSelectedEstimateId]);
-
-  const handleSaveItem = async (desc, qty, cost) => {
-    if (!selectedEstimateId) { alert("⚠️ Please select an Estimate first."); return; }
-    try {
-      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
-      const total = parseFloat(qty) * parseFloat(cost);
-      
-      const newItem = {
-        description: desc,
-        quantity: parseFloat(qty),
-        unit_cost: parseFloat(cost),
-        total: total,
-        unit: 'ea'
-      };
-
-      if (!est.items) est.items = [];
-      est.items.push(newItem);
-      
-      let sub = 0; est.items.forEach(i => sub += i.total);
-      est.subtotal = sub;
-      est.total_amount = sub * (1 + ((est.tax_rate || 0) / 100));
-
-      await base44.entities.JobEstimate.update(est);
-      alert(`✅ Saved "${desc}" to estimate for $${total.toFixed(2)}!`);
-    } catch (e) { console.error(e); alert("Error saving item."); }
+  const calculate = () => {
+    const totalRise = parseFloat(rise);
+    if (!totalRise) return;
+    const numRisers = Math.round(totalRise / 7.5);
+    const riserHeight = totalRise / numRisers;
+    setResults({
+      numRisers, numTreads: numRisers - 1,
+      description: `Stairs: ${numRisers} risers @ ${riserHeight.toFixed(2)}"`,
+      message: `Risers: ${numRisers} | Treads: ${numRisers - 1}`
+    });
   };
 
   return (
-    <div className="w-full h-full flex flex-col p-2">
-      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
-        <label className="text-xs font-bold text-slate-500 uppercase">Saving to Estimate:</label>
-        <select 
-          value={selectedEstimateId}
-          onChange={(e) => setSelectedEstimateId(e.target.value)}
-          className="w-full p-2 text-sm rounded border bg-white border-slate-300 mt-1"
-        >
-          <option value="">-- Select an Estimate --</option>
-          {estimates.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
-        </select>
-      </div>
+    <Card>
+      <CardHeader><CardTitle>Stairs</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div><Label>Total Rise (in)</Label><Input type="number" value={rise} onChange={(e) => setRise(e.target.value)} /></div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 rounded border border-green-200">
+            <p className="text-sm font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.numTreads} unitLabel="Price per Tread ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-      {/* CONCRETE ONLY FOR NOW */}
-      <ConcreteCalculator onSave={handleSaveItem} />
-    </div>
+// --- 4. CONCRETE CALCULATOR ---
+function ConcreteCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '', depth: '4' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length), w = parseFloat(inputs.width), d = parseFloat(inputs.depth);
+    if (!l || !w) return;
+    const cubicFeet = l * w * (d / 12);
+    const bags = Math.ceil(cubicFeet / 0.6); // 80lb bags
+    setResults({
+      bags, description: `Concrete: ${l}'x${w}'x${d}" slab`,
+      message: `Volume: ${cubicFeet.toFixed(2)} cu ft | 80lb Bags: ${bags}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Concrete</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Length</Label><Input type="number" value={inputs.length} onChange={(e) => setInputs({...inputs, length: e.target.value})} /></div>
+          <div><Label>Width</Label><Input type="number" value={inputs.width} onChange={(e) => setInputs({...inputs, width: e.target.value})} /></div>
+          <div className="col-span-2"><Label>Depth (in)</Label><Input type="number" value={inputs.depth} onChange={(e) => setInputs({...inputs, depth: e.target.value})} /></div>
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 rounded border border-green-200">
+            <p className="text-sm font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.bags} unitLabel="Price per Bag ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
