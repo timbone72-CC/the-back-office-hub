@@ -168,7 +168,6 @@ export default function EstimateDetail() {
     if (field === 'quantity') item.quantity = value;
     if (field === 'unit_cost') item.unit_cost = value;
 
-    // Handle inventory linking
     if (field === 'inventory_id') {
        item.inventory_id = value;
        const invItem = inventory?.find(i => i.id === value);
@@ -178,7 +177,6 @@ export default function EstimateDetail() {
        }
     }
 
-    // Strict parsing updates
     const qty = Number(item.quantity) || 0;
     const cost = Number(item.unit_cost) || 0;
     item.total = qty * cost;
@@ -192,7 +190,6 @@ export default function EstimateDetail() {
       const qty = Number(item.quantity) || 0;
       const cost = Number(item.unit_cost) || 0;
       const lineTotal = qty * cost;
-      // Update line total in object if missing/stale (ensures integrity)
       item.total = lineTotal; 
       return sum + lineTotal;
     }, 0);
@@ -229,21 +226,16 @@ export default function EstimateDetail() {
 
   const convertToJobMutation = useMutation({
     mutationFn: async () => {
-      // Use backend function to handle atomic job creation and inventory deduction
       const res = await base44.functions.invoke('convertEstimateToJob', { estimate_id: estimateId });
-      // The backend function returns { job_id, message, deductions }
       return { id: res.data.job_id, deductions: res.data.deductions };
     },
     onSuccess: (result) => {
-      // PHASE 3: Cache Synchronization
-      // Ensure all derived states are refreshed immediately
       queryClient.invalidateQueries({ queryKey: ['estimate', estimateId] });
-      queryClient.invalidateQueries({ queryKey: ['estimates'] }); // Update list view
-      queryClient.invalidateQueries({ queryKey: ['inventory'] }); // Ensure main inventory cache is cleared
-      queryClient.invalidateQueries({ queryKey: ['inventory-list'] }); // Reflect stock deductions
-      queryClient.invalidateQueries({ queryKey: ['active-jobs'] }); // Show new job in lists
+      queryClient.invalidateQueries({ queryKey: ['estimates'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-list'] });
+      queryClient.invalidateQueries({ queryKey: ['active-jobs'] });
 
-      // Show summary of inventory deductions
       const deductionCount = result.deductions?.length || 0;
       if (deductionCount > 0) {
         toast.success(`Job Created! ${deductionCount} inventory items updated.`);
@@ -262,13 +254,12 @@ export default function EstimateDetail() {
   const handlePrint = () => {
     toast.info('Generating PDF...');
     setTimeout(() => {
-        window.print(); // Simple browser print for now
+        window.print();
     }, 500);
   };
 
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
   
-  // Show Not Found only if we have an ID but it wasn't found
   if (estimateId && !estimate && !isLoading) return (
     <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
       <h2 className="text-xl font-bold text-slate-900 mb-2">Estimate Not Found</h2>
@@ -290,14 +281,11 @@ export default function EstimateDetail() {
           .printable, .printable * { visibility: visible; }
           .printable { position: relative; left: 0; top: 0; }
           .no-print, .no-print * { display: none !important; }
-          /* Hide global layout elements */
           aside, nav, .fixed { display: none !important; }
-          /* Ensure text colors print correctly */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
       
-      {/* Dynamic Header */}
       <div className="printable bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1 w-full md:w-auto">
           <div className="flex items-center gap-3 mb-2">
@@ -324,7 +312,6 @@ export default function EstimateDetail() {
             )}
           </div>
           
-          {/* Editable Title and Client for New Estimate */}
           {!estimateId ? (
               <div className="space-y-3 pt-1">
                   <Input 
@@ -379,7 +366,6 @@ export default function EstimateDetail() {
                   <DialogHeader>
                   <DialogTitle>Handyman Calculators</DialogTitle>
                   </DialogHeader>
-                  {/* We add the ID prop here so the calculator knows which job to select */}
                   <HandymanCalculators preSelectedEstimateId={estimateId} />
                 </DialogContent>
               </Dialog>
@@ -401,22 +387,13 @@ export default function EstimateDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Main Content Column */}
         <div className="lg:col-span-2 space-y-6 printable">
-          
-          {/* Quick Scoping Wizard */}
           <div className="no-print">
-            
-            {/* --- JOB KIT LOADER --- */}
             <JobKitLoader onItemAdd={addItem} />
-            {/* ---------------------- */}
-
             <QuickScoping onAddItem={addItem} clientNotes={client?.permanent_notes} />
             <ScopingAlerts items={formData.items} />
           </div>
 
-          {/* Line Items Table & Financial Summary */}
           <Card className="border-slate-200 shadow-sm overflow-hidden">
             <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between py-4">
               <CardTitle className="text-lg font-bold text-slate-800">Line Items</CardTitle>
@@ -542,7 +519,6 @@ export default function EstimateDetail() {
                 </TableBody>
               </Table>
 
-              {/* Financial Summary Footer */}
               <div className="bg-slate-50/50 p-6 border-t border-slate-100">
                  <div className="flex flex-col items-end gap-3 max-w-xs ml-auto">
                     <div className="flex justify-between w-full text-sm">
@@ -614,7 +590,6 @@ export default function EstimateDetail() {
         </div>
         </div>
 
-        {/* Sidebar Column */}
         <div className="space-y-6 no-print">
           <Card className="sticky top-6">
             <CardHeader>
@@ -664,16 +639,12 @@ export default function EstimateDetail() {
               </Button>
             </CardContent>
           </Card>
-
         </div>
       </div>
     </div>
   );
 }
 
-// ==========================================
-// JOB KIT LOADER (DROPDOWN)
-// ==========================================
 function JobKitLoader({ onItemAdd }) {
   const [kits, setKits] = useState([]);
   const [selectedKitId, setSelectedKitId] = useState('');
@@ -705,7 +676,7 @@ function JobKitLoader({ onItemAdd }) {
       });
       
       toast.success(`Loaded ${kit.name}`);
-      setSelectedKitId(''); // Reset dropdown
+      setSelectedKitId('');
       
     } catch (e) {
       toast.error("Failed to load kit");
@@ -733,12 +704,7 @@ function JobKitLoader({ onItemAdd }) {
             ))}
           </SelectContent>
         </Select>
-        
-        <Button 
-          onClick={loadKit} 
-          disabled={!selectedKitId}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
+        <Button onClick={loadKit} disabled={!selectedKitId} className="bg-indigo-600 hover:bg-indigo-700 text-white">
           + Load Kit
         </Button>
       </CardContent>
