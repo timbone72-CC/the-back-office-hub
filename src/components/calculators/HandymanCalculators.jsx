@@ -612,7 +612,7 @@ const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
   setSaving(true);
   try {
     // FETCH: Use .filter() to get the estimate
-    const res = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
+    const res = await base44.entities.JobEstimate.filter({ _id: selectedEstimateId });
     const est = res && res.length > 0 ? res[0] : null;
     
     if (!est) {
