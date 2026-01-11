@@ -259,7 +259,6 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
   useEffect(() => {
     const fetch = async () => {
-      // Data fetch via base44 entity
       const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
       setEstimates(res || []);
     };
@@ -273,15 +272,7 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
       const est = await base44.entities.JobEstimate.read(selectedEstimateId);
       const total = parseFloat(qty) * parseFloat(cost);
       if (!est.items) est.items = [];
-      
-      // Critical parseFloat fix to ensure numeric values
-      est.items.push({ 
-        description: desc, 
-        quantity: parseFloat(qty), 
-        unit_cost: parseFloat(cost), 
-        total 
-      });
-
+      est.items.push({ description: desc, quantity: qty, unit_cost: cost, total });
       est.subtotal = est.items.reduce((s, i) => s + i.total, 0);
       est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
       await base44.entities.JobEstimate.update(est);
