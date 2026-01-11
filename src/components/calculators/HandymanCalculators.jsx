@@ -1267,8 +1267,6 @@ function LayoutCalculator({ onSave }) {
   );
 }
 
-// --- PASTE THIS CODE ---
-
 const SpecsReference = () => {
   return React.createElement("div", { className: "p-4 space-y-6" },
     React.createElement("div", { className: "bg-white p-4 rounded shadow" },
