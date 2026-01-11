@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 
+// Essential import for data access
+import base44 from '@/lib/base44';
+
 // --- CALCULATORS (IN SPECIFIED ORDER) ---
 
 function FramingCalculator({ onSave, saving }) {
@@ -267,17 +270,30 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
   const handleSaveItem = async (desc, qty, cost) => {
     if (!selectedEstimateId || saving) return;
+
+    // Added Validation Guard
+    const q = parseFloat(qty);
+    const c = parseFloat(cost);
+
+    if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
+      alert("Invalid quantity or cost");
+      return;
+    }
+
     setSaving(true);
     try {
       const est = await base44.entities.JobEstimate.read(selectedEstimateId);
-      const total = parseFloat(qty) * parseFloat(cost);
+      const total = q * c; // Updated usage to use validated numeric variables
       if (!est.items) est.items = [];
-     est.items.push({
-  description: desc,
-  quantity: parseFloat(qty),
-  unit_cost: parseFloat(cost),
-  total: parseFloat(total)
-});
+      
+      // Updated items.push to use validated numeric variables
+      est.items.push({ 
+        description: desc, 
+        quantity: q, 
+        unit_cost: c, 
+        total 
+      });
+
       est.subtotal = est.items.reduce((s, i) => s + i.total, 0);
       est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
       await base44.entities.JobEstimate.update(est);
