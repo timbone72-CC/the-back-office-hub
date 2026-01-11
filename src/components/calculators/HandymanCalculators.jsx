@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Save } from 'lucide-react';
 
-// --- PART 1: THE REUSABLE MONEY COMPONENT ---
-// This little box handles the Price Input for every calculator below.
+// --- 1. THE MONEY BOX COMPONENT ---
 function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   const [unitCost, setUnitCost] = useState('');
 
@@ -17,9 +14,8 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
       alert("Please enter a unit cost");
       return;
     }
-    // This sends the data back to the main app to save money
     onSave(description, quantity, unitCost);
-    setUnitCost(''); // Clear the box after saving
+    setUnitCost('');
   };
 
   return (
@@ -43,3 +39,77 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
     </div>
   );
 }
+
+// --- 2. CONCRETE CALCULATOR ---
+function ConcreteCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '', depth: '4' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const length = parseFloat(inputs.length);
+    const width = parseFloat(inputs.width);
+    const depthInches = parseFloat(inputs.depth);
+    
+    if (!length || !width || !depthInches) {
+      setResults({ message: 'Please enter all dimensions' });
+      return;
+    }
+    
+    const depthFeet = depthInches / 12;
+    const cubicFeet = length * width * depthFeet;
+    const cubicYards = cubicFeet / 27;
+    const cubicYardsWithWaste = cubicYards * 1.1;
+    const bags80lb = Math.ceil(cubicFeet / 0.6);
+    
+    setResults({ 
+      bags80lb,
+      description: `Concrete Slab: ${length}'x${width}'x${depthInches}" (${Math.round(cubicYardsWithWaste * 100) / 100} cu yd)`,
+      message: `Volume: ${Math.round(cubicYards * 100) / 100} cu yd | 80lb Bags Needed: ${bags80lb}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Concrete Calculator</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Length (ft)</Label><Input type="number" value={inputs.length} onChange={(e) => setInputs({...inputs, length: e.target.value})} /></div>
+          <div><Label>Width (ft)</Label><Input type="number" value={inputs.width} onChange={(e) => setInputs({...inputs, width: e.target.value})} /></div>
+          <div className="col-span-2"><Label>Depth (in)</Label><Input type="number" value={inputs.depth} onChange={(e) => setInputs({...inputs, depth: e.target.value})} /></div>
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        
+        {results && results.bags80lb && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="font-semibold text-green-800">Results:</h4>
+            <p className="text-sm text-green-700 mb-2">{results.message}</p>
+            <SaveToEstimatePanel 
+              description={results.description}
+              quantity={results.bags80lb}
+              unitLabel="Price per 80lb Bag ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// --- 3. MAIN EXPORT (THE SHELL) ---
+export default function HandymanCalculators({ preSelectedEstimateId }) {
+  const [estimates, setEstimates] = React.useState([]);
+  const [selectedEstimateId, setSelectedEstimateId] = React.useState(preSelectedEstimateId || '');
+
+  React.useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
+        setEstimates(res || []);
+        if (preSelectedEstimateId) setSelectedEstimateId(preSelectedEstimateId);
+      } catch (e) { console.error(e); }
+    };
+    fetchEstimates();
+  }, [preSelectedEstimateId]);
+
+  <span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />
