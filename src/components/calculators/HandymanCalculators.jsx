@@ -437,3 +437,74 @@ function PaintCalculator({ onSave }) {
   );
 }
 
+// --- TRIM CALCULATOR ---
+function TrimCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({
+    length: '',
+    width: '',
+  });
+
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length);
+    const w = parseFloat(inputs.width);
+    if (!l || !w) return;
+
+    const perimeter = 2 * (l + w);
+    const withWaste = Math.ceil(perimeter * 1.1);
+
+    setResults({
+      feet: withWaste,
+      description: `Baseboard: ${l}' × ${w}' room`,
+      message: `Perimeter: ${perimeter} ft | With 10% waste: ${withWaste} ft`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Trim (Baseboard)</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label>Width (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.width}
+              onChange={(e) => setInputs({ ...inputs, width: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.feet}
+              unitLabel="Price per Linear Foot ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
