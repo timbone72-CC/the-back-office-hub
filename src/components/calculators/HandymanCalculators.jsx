@@ -508,3 +508,106 @@ function TrimCalculator({ onSave }) {
     </Card>
   );
 }
+
+// --- MATERIALS CALCULATOR (Board Feet) ---
+function MaterialsCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({
+    thickness: '1',
+    width: '',
+    length: '',
+    quantity: '1',
+  });
+
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const t = parseFloat(inputs.thickness);
+    const w = parseFloat(inputs.width);
+    const l = parseFloat(inputs.length);
+    const q = parseFloat(inputs.quantity);
+
+    if (!t || !w || !l || !q) return;
+
+    const bfEach = (t * w * l) / 12;
+    const totalBF = bfEach * q;
+
+    setResults({
+      totalBF: totalBF.toFixed(2),
+      description: `Lumber: ${q} pcs ${t}"×${w}"×${l}'`,
+      message: `Board Feet Each: ${bfEach.toFixed(2)} | Total: ${totalBF.toFixed(2)} BF`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Materials (Board Feet)</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Thickness (in)</Label>
+            <Input
+              type="number"
+              value={inputs.thickness}
+              onChange={(e) =>
+                setInputs({ ...inputs, thickness: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Width (in)</Label>
+            <Input
+              type="number"
+              value={inputs.width}
+              onChange={(e) =>
+                setInputs({ ...inputs, width: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) =>
+                setInputs({ ...inputs, length: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Quantity</Label>
+            <Input
+              type="number"
+              value={inputs.quantity}
+              onChange={(e) =>
+                setInputs({ ...inputs, quantity: e.target.value })
+              }
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.totalBF}
+              unitLabel="Price per Board Foot ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
