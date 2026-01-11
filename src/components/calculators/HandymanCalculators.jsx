@@ -284,3 +284,95 @@ function TrimCalculator({ onSave }) {
     </Card>
   );
 }
+
+// --- 9. UTILITY CALCULATORS (Simple Refs) ---
+function LayoutCalculator() { return <div className="p-4 bg-white rounded shadow">Layout Calc: Enter a 3-4-5 Triangle to check square.</div>; }
+function ConversionsCalculator() { return <div className="p-4 bg-white rounded shadow">Unit Converter: 1 Meter = 3.28 Feet</div>; }
+function SpecsReference() { return <div className="p-4 bg-white rounded shadow">Specs: Standard Stud is 92 5/8"</div>; }
+
+// --- MAIN SHELL ---
+export default function HandymanCalculators({ preSelectedEstimateId }) {
+  const [activeTab, setActiveTab] = useState('framing');
+  const [estimates, setEstimates] = useState([]);
+  const [selectedEstimateId, setSelectedEstimateId] = useState(preSelectedEstimateId || '');
+
+  // 1. Define Tabs
+  const tabs = [
+    { id: 'framing', label: 'Framing', Comp: FramingCalculator },
+    { id: 'stairs', label: 'Stairs', Comp: StairsCalculator },
+    { id: 'concrete', label: 'Concrete', Comp: ConcreteCalculator },
+    { id: 'materials', label: 'Materials', Comp: MaterialsCalculator },
+    { id: 'drywall', label: 'Drywall', Comp: DrywallCalculator },
+    { id: 'paint', label: 'Paint', Comp: PaintCalculator },
+    { id: 'trim', label: 'Trim', Comp: TrimCalculator },
+    { id: 'layout', label: 'Layout', Comp: LayoutCalculator },
+    { id: 'convert', label: 'Convert', Comp: ConversionsCalculator },
+    { id: 'specs', label: 'Specs', Comp: SpecsReference },
+  ];
+
+  // 2. Load Estimates
+  useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
+        setEstimates(res || []);
+        if (preSelectedEstimateId) setSelectedEstimateId(preSelectedEstimateId);
+      } catch (e) { console.error(e); }
+    };
+    fetchEstimates();
+  }, [preSelectedEstimateId]);
+
+  // 3. The Master Save Function
+  const handleSaveItem = async (desc, qty, cost) => {
+    if (!selectedEstimateId) { alert("⚠️ Please select an Estimate first."); return; }
+    try {
+      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
+      const total = parseFloat(qty) * parseFloat(cost);
+      
+      const newItem = { description: desc, quantity: parseFloat(qty), unit_cost: parseFloat(cost), total: total, unit: 'ea' };
+
+      if (!est.items) est.items = [];
+      est.items.push(newItem);
+      
+      let sub = 0; est.items.forEach(i => sub += i.total);
+      est.subtotal = sub;
+      est.total_amount = sub * (1 + ((est.tax_rate || 0) / 100));
+
+      await base44.entities.JobEstimate.update(est);
+      alert(`✅ Saved "${desc}" ($${total.toFixed(2)})`);
+    } catch (e) { console.error(e); alert("Error saving."); }
+  };
+
+  const ActiveComponent = tabs.find(t => t.id === activeTab)?.Comp || tabs[0].Comp;
+
+  return (
+    <div className="w-full h-full flex flex-col p-2">
+      {/* ESTIMATE SELECTOR */}
+      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
+        <label className="text-xs font-bold text-slate-500 uppercase">Saving to:</label>
+        <select value={selectedEstimateId} onChange={(e) => setSelectedEstimateId(e.target.value)} className="w-full p-2 text-sm rounded border bg-white border-slate-300 mt-1">
+          <option value="">-- Select an Estimate --</option>
+          {estimates.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
+        </select>
+      </div>
+
+      {/* TAB BAR */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3 py-2 text-xs font-bold rounded shadow-sm border ${activeTab === tab.id ? 'bg-slate-800 text-white' : 'bg-white text-slate-600'}`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ACTIVE CALCULATOR */}
+      <div className="flex-1 overflow-y-auto pb-10">
+        <ActiveComponent onSave={handleSaveItem} />
+      </div>
+    </div>
+  );
+}
