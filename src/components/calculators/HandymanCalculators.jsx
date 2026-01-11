@@ -7,6 +7,65 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 
+// ========== REGIONAL PRICING (Elk City, OK) ==========
+const REGIONAL_PRICING = {
+  region: 'Elk City, OK',
+  labor: { default: 45, min: 20, max: 150 },
+  framing: [
+    { label: '2x4x8', price: 5.00 },
+    { label: '2x6x8', price: 7.50 },
+    { label: '2x4x12', price: 8.00 },
+    { label: '2x6x12', price: 12.00 }
+  ],
+  concrete: [
+    { label: 'Standard (per yard)', price: 135.00 }
+  ],
+  drywall: [
+    { label: '4x8 ½"', price: 13.00 },
+    { label: '4x8 ⅝"', price: 16.00 }
+  ],
+  paint: [
+    { label: 'Interior (gal)', price: 32.00 },
+    { label: 'Exterior (gal)', price: 40.00 },
+    { label: 'Primer (gal)', price: 25.00 }
+  ],
+  trim: [
+    { label: 'Baseboard (LF)', price: 1.75 },
+    { label: 'Crown (LF)', price: 3.50 },
+    { label: 'Door Casing (LF)', price: 2.00 }
+  ],
+  materials: [
+    { label: 'Plywood 4x8 ½"', price: 45.00 },
+    { label: 'Plywood 4x8 ¾"', price: 55.00 },
+    { label: 'OSB 4x8', price: 28.00 }
+  ]
+};
+
+// ========== PRESET SELECTOR COMPONENT ==========
+function PresetSelector({ presets, onSelect, label = "Quick-fill" }) {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <span className="text-sm text-gray-500">{label}:</span>
+      <select
+        className="text-sm border rounded px-2 py-1"
+        defaultValue=""
+        onChange={(e) => {
+          const selected = presets.find(p => p.label === e.target.value);
+          if (selected) onSelect(selected.price);
+          e.target.value = "";
+        }}
+      >
+        <option value="" disabled>Select preset...</option>
+        {presets.map(p => (
+          <option key={p.label} value={p.label}>
+            {p.label} — ${p.price.toFixed(2)}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 // --- CALCULATORS (IN SPECIFIED ORDER) ---
 
 function FramingCalculator({ onSave, saving }) {
