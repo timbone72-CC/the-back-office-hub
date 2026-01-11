@@ -406,6 +406,11 @@ export default function EstimateDetail() {
           
           {/* Quick Scoping Wizard */}
           <div className="no-print">
+            
+            {/* --- JOB KIT LOADER --- */}
+            <JobKitLoader onItemAdd={addItem} />
+            {/* ---------------------- */}
+
             <QuickScoping onAddItem={addItem} clientNotes={client?.permanent_notes} />
             <ScopingAlerts items={formData.items} />
           </div>
@@ -662,5 +667,87 @@ export default function EstimateDetail() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ==========================================
+// JOB KIT COMPONENT DEFINITION
+// ==========================================
+function JobKitLoader({ onItemAdd }) {
+  const [kits, setKits] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Load kits
+    base44.entities.JobKit.list('name', 50)
+      .then(res => {
+        setKits(res || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error loading kits", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const loadKit = async (kit) => {
+    if (!confirm(`Load "${kit.name}"? This will add items to your list.`)) return;
+    
+    try {
+      // Fetch the ingredients
+      const items = await base44.entities.JobKitItem.filter({ job_kit_id: kit.id });
+      
+      if (!items || items.length === 0) {
+        alert("This kit is empty!");
+        return;
+      }
+
+      // Add each item to the estimate form using the parent's addItem function
+      let count = 0;
+      items.forEach(item => {
+        // Map the database columns to the Estimate format
+        onItemAdd({
+          description: `${item.category || 'Item'}: ${item.item_name}`, 
+          quantity: item.default_qty || 0,
+          unit_cost: item.default_cost || 0,
+          total: (item.default_qty || 0) * (item.default_cost || 0)
+        });
+        count++;
+      });
+      
+      toast.success(`Loaded ${count} items from ${kit.name}`);
+      
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to load kit items");
+    }
+  };
+
+  if (loading) return null;
+  if (kits.length === 0) return null;
+
+  return (
+    <Card className="border-indigo-100 bg-indigo-50/50 mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-indigo-900 text-lg flex items-center gap-2">
+          <Package className="w-5 h-5" />
+          Quick Load Job Kits
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap gap-2">
+          {kits.map(kit => (
+            <Button 
+              key={kit.id} 
+              onClick={() => loadKit(kit)}
+              variant="outline" 
+              className="bg-white border-indigo-200 hover:bg-indigo-100 text-indigo-700"
+            >
+              + {kit.name}
+            </Button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
