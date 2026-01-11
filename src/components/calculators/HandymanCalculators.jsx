@@ -152,3 +152,92 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
   );
 }
 
+// --- CONCRETE CALCULATOR ---
+function ConcreteCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({
+    length: '',
+    width: '',
+    depth: '4',
+  });
+
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length);
+    const w = parseFloat(inputs.width);
+    const d = parseFloat(inputs.depth);
+
+    if (!l || !w || !d) return;
+
+    const cubicFeet = l * w * (d / 12);
+    const bags80lb = Math.ceil(cubicFeet / 0.6);
+
+    setResults({
+      bags: bags80lb,
+      description: `Concrete Slab: ${l}' × ${w}' × ${d}"`,
+      message: `Volume: ${cubicFeet.toFixed(2)} cu ft | 80lb Bags: ${bags80lb}`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Concrete</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) =>
+                setInputs({ ...inputs, length: e.target.value })
+              }
+            />
+          </div>
+
+          <div>
+            <Label>Width (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.width}
+              onChange={(e) =>
+                setInputs({ ...inputs, width: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="col-span-2">
+            <Label>Depth (in)</Label>
+            <Input
+              type="number"
+              value={inputs.depth}
+              onChange={(e) =>
+                setInputs({ ...inputs, depth: e.target.value })
+              }
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.bags}
+              unitLabel="Price per 80lb Bag ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
