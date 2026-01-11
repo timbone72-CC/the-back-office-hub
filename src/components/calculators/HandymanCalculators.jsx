@@ -7,9 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 
-// Essential import for data access
-import base44 from '@/lib/base44';
-
 // --- CALCULATORS (IN SPECIFIED ORDER) ---
 
 function FramingCalculator({ onSave, saving }) {
