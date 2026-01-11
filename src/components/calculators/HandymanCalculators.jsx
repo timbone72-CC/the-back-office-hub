@@ -49,3 +49,65 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   );
 }
 
+function FramingCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', spacing: '16' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const len = parseFloat(inputs.length);
+    const spacing = parseFloat(inputs.spacing);
+    if (!len) return;
+
+    const studs = Math.ceil((len * 12) / spacing) + 1;
+
+    setResults({
+      qty: studs,
+      description: `Wall Studs: ${len}ft @ ${spacing}" OC`,
+      message: `Studs needed: ${studs}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Framing</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Wall Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label>Stud Spacing (in)</Label>
+            <Input
+              type="number"
+              value={inputs.spacing}
+              onChange={(e) => setInputs({ ...inputs, spacing: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.qty}
+              unitLabel="Price per Stud ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
