@@ -112,4 +112,48 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     fetchEstimates();
   }, [preSelectedEstimateId]);
 
-  <span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />
+  const handleSaveItem = async (desc, qty, cost) => {
+    if (!selectedEstimateId) { alert("⚠️ Please select an Estimate first."); return; }
+    try {
+      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
+      const total = parseFloat(qty) * parseFloat(cost);
+      
+      const newItem = {
+        description: desc,
+        quantity: parseFloat(qty),
+        unit_cost: parseFloat(cost),
+        total: total,
+        unit: 'ea'
+      };
+
+      if (!est.items) est.items = [];
+      est.items.push(newItem);
+      
+      let sub = 0; est.items.forEach(i => sub += i.total);
+      est.subtotal = sub;
+      est.total_amount = sub * (1 + ((est.tax_rate || 0) / 100));
+
+      await base44.entities.JobEstimate.update(est);
+      alert(`✅ Saved "${desc}" to estimate for $${total.toFixed(2)}!`);
+    } catch (e) { console.error(e); alert("Error saving item."); }
+  };
+
+  return (
+    <div className="w-full h-full flex flex-col p-2">
+      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
+        <label className="text-xs font-bold text-slate-500 uppercase">Saving to Estimate:</label>
+        <select 
+          value={selectedEstimateId}
+          onChange={(e) => setSelectedEstimateId(e.target.value)}
+          className="w-full p-2 text-sm rounded border bg-white border-slate-300 mt-1"
+        >
+          <option value="">-- Select an Estimate --</option>
+          {estimates.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
+        </select>
+      </div>
+
+      {/* CONCRETE ONLY FOR NOW */}
+      <ConcreteCalculator onSave={handleSaveItem} />
+    </div>
+  );
+}
