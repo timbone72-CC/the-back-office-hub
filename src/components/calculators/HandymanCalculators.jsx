@@ -594,55 +594,74 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     fetchEstimates();
   }, []);
 
-  // ========== Handler: Save item to selected estimate ==========
-  const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
-    if (!selectedEstimateId) {
-      alert('Please select an estimate first');
-      return;
-    }
-    if (saving) return;
+// ========== Handler: Save item to selected estimate ==========
+const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
+  if (!selectedEstimateId) {
+    alert('Please select an estimate first');
+    return;
+  }
+  if (saving) return;
 
-    const q = parseFloat(qty);
-    const c = parseFloat(cost);
-    if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
-      alert('Invalid quantity or cost');
-      return;
-    }
+  const q = parseFloat(qty);
+  const c = parseFloat(cost);
+  if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
+    alert('Invalid quantity or cost');
+    return;
+  }
 
-    // Check base44 availability
-    if (typeof base44 === 'undefined' || !base44.entities?.JobEstimate) {
-      alert('System error: Cannot access estimates');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
-      if (!est.items) est.items = [];
-
-      est.items.push({ description: desc, quantity: q, unit_cost: c, total: q * c });
-
-      if (laborObj) {
-        const lh = parseFloat(laborObj.hours);
-        const lr = parseFloat(laborObj.rate);
-        if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
-          est.items.push({ description: `Labor: ${desc}`, quantity: lh, unit_cost: lr, total: lh * lr });
-        }
-      }
-
-      est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
-      est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
-
-      await base44.entities.JobEstimate.update(est);
-
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      alert('Error saving: ' + err.message);
-    } finally {
+  setSaving(true);
+  try {
+    // FETCH: Use .filter() to get the estimate
+    const res = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
+    const est = res && res.length > 0 ? res[0] : null;
+    
+    if (!est) {
+      alert('Estimate not found');
       setSaving(false);
+      return;
     }
-  };
+
+    // Ensure items array exists
+    if (!est.items) est.items = [];
+
+    // Add material item
+    est.items.push({ 
+      description: desc, 
+      quantity: q, 
+      unit_cost: c, 
+      total: q * c 
+    });
+
+    // Add labor item if applicable
+    if (laborObj) {
+      const lh = parseFloat(laborObj.hours);
+      const lr = parseFloat(laborObj.rate);
+      if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
+        est.items.push({ 
+          description: `Labor: ${desc}`, 
+          quantity: lh, 
+          unit_cost: lr, 
+          total: lh * lr 
+        });
+      }
+    }
+
+    // Recalculate totals
+    est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
+    est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
+
+    // UPDATE: Use .update(id, data) pattern
+    await base44.entities.JobEstimate.update(selectedEstimateId, est);
+
+    // Show success feedback
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  } catch (err) {
+    alert('Error saving: ' + err.message);
+  } finally {
+    setSaving(false);
+  }
+};
 
   // ========== Renderer: Active calculator ==========
   const renderActiveCalculator = () => {
