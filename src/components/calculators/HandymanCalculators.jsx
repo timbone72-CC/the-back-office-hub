@@ -111,3 +111,44 @@ function FramingCalculator({ onSave }) {
     </Card>
   );
 }
+
+export default function HandymanCalculators({ preSelectedEstimateId }) {
+  const [activeTab, setActiveTab] = useState('framing');
+  const [estimates, setEstimates] = useState([]);
+  const [selectedEstimateId, setSelectedEstimateId] = useState(preSelectedEstimateId || '');
+
+  useEffect(() => {
+    const fetch = async () => {
+      const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
+      setEstimates(res || []);
+    };
+    fetch();
+  }, []);
+
+  const handleSaveItem = async (desc, qty, cost) => {
+    if (!selectedEstimateId) {
+      alert("Select an estimate first");
+      return;
+    }
+
+    const est = await base44.entities.JobEstimate.read(selectedEstimateId);
+    const total = parseFloat(qty) * parseFloat(cost);
+
+    if (!est.items) est.items = [];
+    est.items.push({ description: desc, quantity: qty, unit_cost: cost, total });
+
+    est.subtotal = est.items.reduce((s, i) => s + i.total, 0);
+    est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
+
+    await base44.entities.JobEstimate.update(est);
+    alert("✅ Saved");
+  };
+
+  return (
+    <div>
+      {/* tabs + selector */}
+      <FramingCalculator onSave={handleSaveItem} />
+    </div>
+  );
+}
+
