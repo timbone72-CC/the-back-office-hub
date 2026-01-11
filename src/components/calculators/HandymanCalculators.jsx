@@ -706,7 +706,7 @@ const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
             >
               <option value="">-- Select Estimate --</option>
               {estimates.map(e => (
-                <option key={e._id} value={e._id}>{e.title}</option>
+              <option key={e._id || e.id} value={e._id || e.id}>{e.title}</option>
               ))}
             </select>
           </div>
