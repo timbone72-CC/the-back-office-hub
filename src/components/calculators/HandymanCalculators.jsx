@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Save } from 'lucide-react';
 
+// --- 1. THE MONEY BOX ---
 function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   const [unitCost, setUnitCost] = useState('');
 
@@ -49,6 +50,8 @@ function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
   );
 }
 
+// --- 2. CALCULATORS (IN SPECIFIED ORDER) ---
+
 function FramingCalculator({ onSave }) {
   const [inputs, setInputs] = useState({ length: '', spacing: '16' });
   const [results, setResults] = useState(null);
@@ -57,9 +60,7 @@ function FramingCalculator({ onSave }) {
     const len = parseFloat(inputs.length);
     const spacing = parseFloat(inputs.spacing);
     if (!len) return;
-
     const studs = Math.ceil((len * 12) / spacing) + 1;
-
     setResults({
       qty: studs,
       description: `Wall Studs: ${len}ft @ ${spacing}" OC`,
@@ -69,42 +70,23 @@ function FramingCalculator({ onSave }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Framing</CardTitle>
-      </CardHeader>
+      <CardHeader><CardTitle>Framing</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Wall Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
-            />
+            <Input type="number" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} />
           </div>
           <div>
             <Label>Stud Spacing (in)</Label>
-            <Input
-              type="number"
-              value={inputs.spacing}
-              onChange={(e) => setInputs({ ...inputs, spacing: e.target.value })}
-            />
+            <Input type="number" value={inputs.spacing} onChange={(e) => setInputs({ ...inputs, spacing: e.target.value })} />
           </div>
         </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
+        <Button onClick={calculate} className="w-full">Calculate</Button>
         {results && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
             <p className="font-bold text-green-800">{results.message}</p>
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.qty}
-              unitLabel="Price per Stud ($)"
-              onSave={onSave}
-            />
+            <SaveToEstimatePanel description={results.description} quantity={results.qty} unitLabel="Price per Stud ($)" onSave={onSave} />
           </div>
         )}
       </CardContent>
@@ -112,6 +94,237 @@ function FramingCalculator({ onSave }) {
   );
 }
 
+function ConcreteCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '', depth: '4' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length), w = parseFloat(inputs.width), d = parseFloat(inputs.depth);
+    if (!l || !w || !d) return;
+    const cubicFeet = l * w * (d / 12);
+    const bags80lb = Math.ceil(cubicFeet / 0.6);
+    setResults({
+      bags: bags80lb,
+      description: `Concrete Slab: ${l}' × ${w}' × ${d}"`,
+      message: `80lb Bags: ${bags80lb}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Concrete</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><Label>Length (ft)</Label><Input type="number" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} /></div>
+          <div><Label>Width (ft)</Label><Input type="number" value={inputs.width} onChange={(e) => setInputs({ ...inputs, width: e.target.value })} /></div>
+          <div className="col-span-2"><Label>Depth (in)</Label><Input type="number" value={inputs.depth} onChange={(e) => setInputs({ ...inputs, depth: e.target.value })} /></div>
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.bags} unitLabel="Price per Bag ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DrywallCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '', height: '8' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length), w = parseFloat(inputs.width), h = parseFloat(inputs.height);
+    if (!l || !w || !h) return;
+    const totalArea = (2 * (l + w) * h) + (l * w);
+    const sheets4x8 = Math.ceil(totalArea / 32);
+    setResults({
+      sheets: sheets4x8,
+      description: `Drywall: ${l}' × ${w}' room`,
+      message: `4×8 Sheets: ${sheets4x8}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Drywall</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-2">
+          <div><Label>L (ft)</Label><Input type="number" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} /></div>
+          <div><Label>W (ft)</Label><Input type="number" value={inputs.width} onChange={(e) => setInputs({ ...inputs, width: e.target.value })} /></div>
+          <div><Label>H (ft)</Label><Input type="number" value={inputs.height} onChange={(e) => setInputs({ ...inputs, height: e.target.value })} /></div>
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.sheets} unitLabel="Price per Sheet ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function PaintCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '', height: '8', coats: '1' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length), w = parseFloat(inputs.width), h = parseFloat(inputs.height), c = parseInt(inputs.coats);
+    if (!l || !w || !h) return;
+    const gallons = Math.ceil(((2 * (l + w) * h) * c) / 350);
+    setResults({
+      gallons,
+      description: `Paint: ${l}' × ${w}' (${c} coats)`,
+      message: `Gallons: ${gallons}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Paint</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="number" placeholder="L" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} />
+          <Input type="number" placeholder="W" value={inputs.width} onChange={(e) => setInputs({ ...inputs, width: e.target.value })} />
+          <Input type="number" placeholder="H" value={inputs.height} onChange={(e) => setInputs({ ...inputs, height: e.target.value })} />
+          <select className="border rounded px-2" value={inputs.coats} onChange={(e) => setInputs({ ...inputs, coats: e.target.value })}>
+            <option value="1">1 Coat</option><option value="2">2 Coats</option>
+          </select>
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.gallons} unitLabel="Price per Gal ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TrimCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ length: '', width: '' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length), w = parseFloat(inputs.width);
+    if (!l || !w) return;
+    const withWaste = Math.ceil((2 * (l + w)) * 1.1);
+    setResults({
+      feet: withWaste,
+      description: `Baseboard: ${l}' × ${w}' room`,
+      message: `Linear Feet (10% waste): ${withWaste}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Trim</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="number" placeholder="L" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} />
+          <Input type="number" placeholder="W" value={inputs.width} onChange={(e) => setInputs({ ...inputs, width: e.target.value })} />
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.feet} unitLabel="Price per LF ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MaterialsCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({ thickness: '1', width: '', length: '', quantity: '1' });
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const t = parseFloat(inputs.thickness), w = parseFloat(inputs.width), l = parseFloat(inputs.length), q = parseFloat(inputs.quantity);
+    if (!t || !w || !l) return;
+    const totalBF = ((t * w * l) / 12) * q;
+    setResults({
+      totalBF: totalBF.toFixed(2),
+      description: `Lumber: ${q}pcs ${t}x${w}x${l}`,
+      message: `Total Board Feet: ${totalBF.toFixed(2)}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Materials (Board Feet)</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <Input type="number" placeholder="T" value={inputs.thickness} onChange={(e) => setInputs({ ...inputs, thickness: e.target.value })} />
+          <Input type="number" placeholder="W" value={inputs.width} onChange={(e) => setInputs({ ...inputs, width: e.target.value })} />
+          <Input type="number" placeholder="L" value={inputs.length} onChange={(e) => setInputs({ ...inputs, length: e.target.value })} />
+          <Input type="number" placeholder="Qty" value={inputs.quantity} onChange={(e) => setInputs({ ...inputs, quantity: e.target.value })} />
+        </div>
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.totalBF} unitLabel="Price per BF ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StairsCalculator({ onSave }) {
+  const [rise, setRise] = useState('');
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const totalRise = parseFloat(rise);
+    if (!totalRise) return;
+    const numRisers = Math.ceil(totalRise / 7.75);
+    const numTreads = numRisers - 1;
+    setResults({
+      treads: numTreads,
+      description: `Stairs: ${numRisers} risers`,
+      message: `Treads needed: ${numTreads}`
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle>Stairs</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <Input type="number" placeholder="Total Rise (in)" value={rise} onChange={(e) => setRise(e.target.value)} />
+        <Button onClick={calculate} className="w-full">Calculate</Button>
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+            <SaveToEstimatePanel description={results.description} quantity={results.treads} unitLabel="Price per Tread ($)" onSave={onSave} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LayoutCalculator() {
+  return <Card><CardHeader><CardTitle>Layout (Diagonal)</CardTitle></CardHeader><CardContent>Coming Soon...</CardContent></Card>;
+}
+
+function ConversionsCalculator() {
+  return <Card><CardHeader><CardTitle>Conversions</CardTitle></CardHeader><CardContent>Coming Soon...</CardContent></Card>;
+}
+
+function SpecsReference() {
+  return <Card><CardHeader><CardTitle>Specs Reference</CardTitle></CardHeader><CardContent>Coming Soon...</CardContent></Card>;
+}
+
+// --- 3. MAIN EXPORT (AT BOTTOM) ---
 export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [activeTab, setActiveTab] = useState('framing');
   const [estimates, setEstimates] = useState([]);
@@ -130,544 +343,55 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
       alert("Select an estimate first");
       return;
     }
-
     const est = await base44.entities.JobEstimate.read(selectedEstimateId);
     const total = parseFloat(qty) * parseFloat(cost);
-
     if (!est.items) est.items = [];
     est.items.push({ description: desc, quantity: qty, unit_cost: cost, total });
-
     est.subtotal = est.items.reduce((s, i) => s + i.total, 0);
     est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
-
     await base44.entities.JobEstimate.update(est);
     alert("✅ Saved");
   };
 
+  const renderActive = () => {
+    switch (activeTab) {
+      case 'framing': return <FramingCalculator onSave={handleSaveItem} />;
+      case 'concrete': return <ConcreteCalculator onSave={handleSaveItem} />;
+      case 'drywall': return <DrywallCalculator onSave={handleSaveItem} />;
+      case 'paint': return <PaintCalculator onSave={handleSaveItem} />;
+      case 'trim': return <TrimCalculator onSave={handleSaveItem} />;
+      case 'materials': return <MaterialsCalculator onSave={handleSaveItem} />;
+      case 'stairs': return <StairsCalculator onSave={handleSaveItem} />;
+      case 'layout': return <LayoutCalculator />;
+      case 'conversions': return <ConversionsCalculator />;
+      case 'specs': return <SpecsReference />;
+      default: return <FramingCalculator onSave={handleSaveItem} />;
+    }
+  };
+
   return (
-    <div>
-      {/* tabs + selector */}
-      <FramingCalculator onSave={handleSaveItem} />
+    <div className="space-y-4">
+      <div className="p-4 bg-slate-100 rounded border">
+        <Label>Target Estimate</Label>
+        <select 
+          className="w-full p-2 border rounded" 
+          value={selectedEstimateId} 
+          onChange={(e) => setSelectedEstimateId(e.target.value)}
+        >
+          <option value="">-- Choose Estimate --</option>
+          {estimates.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
+        </select>
+      </div>
+      
+      <div className="flex flex-wrap gap-2">
+        {['framing', 'concrete', 'drywall', 'paint', 'trim', 'materials', 'stairs', 'layout', 'conversions', 'specs'].map(t => (
+          <Button key={t} variant={activeTab === t ? 'default' : 'outline'} onClick={() => setActiveTab(t)} className="capitalize">
+            {t}
+          </Button>
+        ))}
+      </div>
+
+      {renderActive()}
     </div>
-  );
-}
-
-// --- CONCRETE CALCULATOR ---
-function ConcreteCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({
-    length: '',
-    width: '',
-    depth: '4',
-  });
-
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const l = parseFloat(inputs.length);
-    const w = parseFloat(inputs.width);
-    const d = parseFloat(inputs.depth);
-
-    if (!l || !w || !d) return;
-
-    const cubicFeet = l * w * (d / 12);
-    const bags80lb = Math.ceil(cubicFeet / 0.6);
-
-    setResults({
-      bags: bags80lb,
-      description: `Concrete Slab: ${l}' × ${w}' × ${d}"`,
-      message: `Volume: ${cubicFeet.toFixed(2)} cu ft | 80lb Bags: ${bags80lb}`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Concrete</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) =>
-                setInputs({ ...inputs, length: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Width (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.width}
-              onChange={(e) =>
-                setInputs({ ...inputs, width: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="col-span-2">
-            <Label>Depth (in)</Label>
-            <Input
-              type="number"
-              value={inputs.depth}
-              onChange={(e) =>
-                setInputs({ ...inputs, depth: e.target.value })
-              }
-            />
-          </div>
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.bags}
-              unitLabel="Price per 80lb Bag ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// --- DRYWALL CALCULATOR ---
-function DrywallCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({
-    length: '',
-    width: '',
-    height: '8',
-  });
-
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const l = parseFloat(inputs.length);
-    const w = parseFloat(inputs.width);
-    const h = parseFloat(inputs.height);
-
-    if (!l || !w || !h) return;
-
-    const wallArea = 2 * (l + w) * h;
-    const ceilingArea = l * w;
-    const totalArea = wallArea + ceilingArea;
-
-    const sheets4x8 = Math.ceil(totalArea / 32);
-
-    setResults({
-      sheets: sheets4x8,
-      description: `Drywall: ${l}' × ${w}' room`,
-      message: `Total Area: ${Math.round(
-        totalArea
-      )} sq ft | 4×8 Sheets: ${sheets4x8}`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Drywall</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          <div>
-            <Label>Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) =>
-                setInputs({ ...inputs, length: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Width (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.width}
-              onChange={(e) =>
-                setInputs({ ...inputs, width: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Height (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.height}
-              onChange={(e) =>
-                setInputs({ ...inputs, height: e.target.value })
-              }
-            />
-          </div>
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.sheets}
-              unitLabel="Price per Sheet ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// --- PAINT CALCULATOR ---
-function PaintCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({
-    length: '',
-    width: '',
-    height: '8',
-    coats: '1',
-  });
-
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const l = parseFloat(inputs.length);
-    const w = parseFloat(inputs.width);
-    const h = parseFloat(inputs.height);
-    const coats = parseInt(inputs.coats);
-
-    if (!l || !w || !h || !coats) return;
-
-    const wallArea = 2 * (l + w) * h;
-    const coverage = 350;
-    const gallons = Math.ceil((wallArea * coats) / coverage);
-
-    setResults({
-      gallons,
-      description: `Paint: ${l}' × ${w}' room (${coats} coat${coats > 1 ? 's' : ''})`,
-      message: `Wall Area: ${Math.round(wallArea)} sq ft | Paint Needed: ${gallons} gal`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Paint</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label>Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label>Width (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.width}
-              onChange={(e) => setInputs({ ...inputs, width: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label>Height (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.height}
-              onChange={(e) => setInputs({ ...inputs, height: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label>Coats</Label>
-            <select
-              className="w-full h-10 px-3 border rounded-md"
-              value={inputs.coats}
-              onChange={(e) => setInputs({ ...inputs, coats: e.target.value })}
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-            </select>
-          </div>
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.gallons}
-              unitLabel="Price per Gallon ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// --- TRIM CALCULATOR ---
-function TrimCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({
-    length: '',
-    width: '',
-  });
-
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const l = parseFloat(inputs.length);
-    const w = parseFloat(inputs.width);
-    if (!l || !w) return;
-
-    const perimeter = 2 * (l + w);
-    const withWaste = Math.ceil(perimeter * 1.1);
-
-    setResults({
-      feet: withWaste,
-      description: `Baseboard: ${l}' × ${w}' room`,
-      message: `Perimeter: ${perimeter} ft | With 10% waste: ${withWaste} ft`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Trim (Baseboard)</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label>Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label>Width (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.width}
-              onChange={(e) => setInputs({ ...inputs, width: e.target.value })}
-            />
-          </div>
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.feet}
-              unitLabel="Price per Linear Foot ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// --- MATERIALS CALCULATOR (Board Feet) ---
-function MaterialsCalculator({ onSave }) {
-  const [inputs, setInputs] = useState({
-    thickness: '1',
-    width: '',
-    length: '',
-    quantity: '1',
-  });
-
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const t = parseFloat(inputs.thickness);
-    const w = parseFloat(inputs.width);
-    const l = parseFloat(inputs.length);
-    const q = parseFloat(inputs.quantity);
-
-    if (!t || !w || !l || !q) return;
-
-    const bfEach = (t * w * l) / 12;
-    const totalBF = bfEach * q;
-
-    setResults({
-      totalBF: totalBF.toFixed(2),
-      description: `Lumber: ${q} pcs ${t}"×${w}"×${l}'`,
-      message: `Board Feet Each: ${bfEach.toFixed(2)} | Total: ${totalBF.toFixed(2)} BF`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Materials (Board Feet)</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label>Thickness (in)</Label>
-            <Input
-              type="number"
-              value={inputs.thickness}
-              onChange={(e) =>
-                setInputs({ ...inputs, thickness: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Width (in)</Label>
-            <Input
-              type="number"
-              value={inputs.width}
-              onChange={(e) =>
-                setInputs({ ...inputs, width: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Length (ft)</Label>
-            <Input
-              type="number"
-              value={inputs.length}
-              onChange={(e) =>
-                setInputs({ ...inputs, length: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <Label>Quantity</Label>
-            <Input
-              type="number"
-              value={inputs.quantity}
-              onChange={(e) =>
-                setInputs({ ...inputs, quantity: e.target.value })
-              }
-            />
-          </div>
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.totalBF}
-              unitLabel="Price per Board Foot ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// --- STAIRS CALCULATOR ---
-function StairsCalculator({ onSave }) {
-  const [rise, setRise] = useState('');
-  const [results, setResults] = useState(null);
-
-  const calculate = () => {
-    const totalRise = parseFloat(rise);
-    if (!totalRise) return;
-
-    const maxRiser = 7.75;
-    const numRisers = Math.ceil(totalRise / maxRiser);
-    const riserHeight = totalRise / numRisers;
-    const numTreads = numRisers - 1;
-
-    setResults({
-      treads: numTreads,
-      description: `Stairs: ${numRisers} risers @ ${riserHeight.toFixed(2)}"`,
-      message: `Risers: ${numRisers} | Treads: ${numTreads} | Riser Height: ${riserHeight.toFixed(
-        2
-      )}"`,
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Stairs</CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div>
-          <Label>Total Rise (inches)</Label>
-          <Input
-            type="number"
-            value={rise}
-            onChange={(e) => setRise(e.target.value)}
-          />
-        </div>
-
-        <Button onClick={calculate} className="w-full">
-          Calculate
-        </Button>
-
-        {results && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
-            <p className="font-bold text-green-800">{results.message}</p>
-
-            <SaveToEstimatePanel
-              description={results.description}
-              quantity={results.treads}
-              unitLabel="Price per Tread ($)"
-              onSave={onSave}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 }
