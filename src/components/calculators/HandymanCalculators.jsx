@@ -8,20 +8,30 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, CheckCircle2 } from 'lucide-react';
 
-// Base44 runtime provides entities globally
-const JobEstimate = window.base44?.entities?.JobEstimate || base44?.entities?.JobEstimate;
-
 // ========== SECTION 2: REGIONAL PRICING CONFIG ==========
 const REGIONAL_PRICING = {
   region: 'Elk City, OK',
   labor: { default: 45, min: 20, max: 150 }
 };
 
-// ========== SECTION 3: HELPER - Numeric Input (Sanitized) ==========
+// ========== SECTION 3: CALCULATOR OPTIONS ==========
+const CALCULATOR_OPTIONS = [
+  { value: 'framing', label: 'Framing Calculator' },
+  { value: 'concrete', label: 'Concrete Calculator' },
+  { value: 'drywall', label: 'Drywall Calculator' },
+  { value: 'paint', label: 'Paint Calculator' },
+  { value: 'trim', label: 'Trim Calculator' },
+  { value: 'materials', label: 'Materials (General)' },
+  { value: 'stairs', label: 'Stairs Calculator' },
+  { value: 'layout', label: 'Layout Reference' },
+  { value: 'conversions', label: 'Conversions Reference' },
+  { value: 'specs', label: 'Specs Reference' }
+];
+
+// ========== SECTION 4: HELPER - Numeric Input (Sanitized) ==========
 const NumericInput = ({ value, onChange, placeholder, disabled, className }) => {
   const handleChange = (e) => {
     const val = e.target.value;
-    // Allow empty string or valid decimal numbers only
     if (val === '' || /^\d*\.?\d*$/.test(val)) {
       onChange(val);
     }
@@ -39,7 +49,7 @@ const NumericInput = ({ value, onChange, placeholder, disabled, className }) => 
   );
 };
 
-// ========== SECTION 4: CALCULATOR - Framing ==========
+// ========== SECTION 5: CALCULATOR - Framing ==========
 function FramingCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ length: '', spacing: '16', cost: '' });
   const [results, setResults] = useState(null);
@@ -49,12 +59,11 @@ function FramingCalculator({ onSave, saving, laborRate }) {
     const len = parseFloat(inputs.length);
     const spacing = parseFloat(inputs.spacing);
     if (!len || !spacing) return;
-    // Formula: studs = (length in inches / spacing) + 1
     const studs = Math.ceil((len * 12) / spacing) + 1;
     setResults({ 
       qty: studs, 
       desc: `Wall Studs (${len}ft @ ${spacing}" OC)`,
-      laborHours: (len / 10).toFixed(2) // Estimate: 1hr per 10ft
+      laborHours: (len / 10).toFixed(2)
     });
   };
 
@@ -123,7 +132,7 @@ function FramingCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 5: CALCULATOR - Concrete ==========
+// ========== SECTION 6: CALCULATOR - Concrete ==========
 function ConcreteCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ length: '', width: '', depth: '4', cost: '' });
   const [results, setResults] = useState(null);
@@ -134,14 +143,13 @@ function ConcreteCalculator({ onSave, saving, laborRate }) {
     const w = parseFloat(inputs.width);
     const d = parseFloat(inputs.depth);
     if (!l || !w || !d) return;
-    // Formula: bags = cubic feet / 0.6 (80lb bag coverage)
     const cubicFeet = l * w * (d / 12);
     const bags = Math.ceil(cubicFeet / 0.6);
     setResults({
       qty: bags,
       cubicFeet: cubicFeet.toFixed(2),
       desc: `Concrete 80lb Bags (${l}' × ${w}' × ${d}")`,
-      laborHours: (bags * 0.15).toFixed(2) // Estimate: ~9 min per bag
+      laborHours: (bags * 0.15).toFixed(2)
     });
   };
 
@@ -152,30 +160,15 @@ function ConcreteCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-3 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Length (ft)</Label>
-            <NumericInput 
-              placeholder="Length" 
-              value={inputs.length} 
-              onChange={(v) => setInputs({ ...inputs, length: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Length" value={inputs.length} onChange={(v) => setInputs({ ...inputs, length: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Width (ft)</Label>
-            <NumericInput 
-              placeholder="Width" 
-              value={inputs.width} 
-              onChange={(v) => setInputs({ ...inputs, width: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Width" value={inputs.width} onChange={(v) => setInputs({ ...inputs, width: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Depth (in)</Label>
-            <NumericInput 
-              placeholder="Depth" 
-              value={inputs.depth} 
-              onChange={(v) => setInputs({ ...inputs, depth: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Depth" value={inputs.depth} onChange={(v) => setInputs({ ...inputs, depth: v })} disabled={saving} />
           </div>
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
@@ -184,32 +177,12 @@ function ConcreteCalculator({ onSave, saving, laborRate }) {
             <p className="text-sm font-bold">80lb Bags Needed: {results.qty}</p>
             <p className="text-xs text-gray-500">Volume: {results.cubicFeet} cu ft</p>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-concrete" 
-              />
-              <Label htmlFor="labor-concrete" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-concrete" />
+              <Label htmlFor="labor-concrete" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput 
-                placeholder="Cost per bag" 
-                value={inputs.cost} 
-                onChange={(v) => setInputs({...inputs, cost: v})} 
-                disabled={saving} 
-              />
-              <Button 
-                onClick={() => onSave(
-                  results.desc, 
-                  results.qty, 
-                  inputs.cost, 
-                  includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )} 
-                disabled={saving || !inputs.cost}
-              >
+              <NumericInput placeholder="Cost per bag" value={inputs.cost} onChange={(v) => setInputs({...inputs, cost: v})} disabled={saving} />
+              <Button onClick={() => onSave(results.desc, results.qty, inputs.cost, includeLabor ? { hours: results.laborHours, rate: laborRate } : null)} disabled={saving || !inputs.cost}>
                 <Save className="w-4 h-4" />
               </Button>
             </div>
@@ -220,7 +193,7 @@ function ConcreteCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 6: CALCULATOR - Drywall ==========
+// ========== SECTION 7: CALCULATOR - Drywall ==========
 function DrywallCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ length: '', width: '', height: '8', cost: '' });
   const [results, setResults] = useState(null);
@@ -231,7 +204,6 @@ function DrywallCalculator({ onSave, saving, laborRate }) {
     const w = parseFloat(inputs.width);
     const h = parseFloat(inputs.height);
     if (!l || !w || !h) return;
-    // Formula: walls + ceiling, 4x8 sheet = 32 sqft
     const wallSqft = 2 * (l + w) * h;
     const ceilingSqft = l * w;
     const totalSqft = wallSqft + ceilingSqft;
@@ -240,7 +212,7 @@ function DrywallCalculator({ onSave, saving, laborRate }) {
       qty: sheets,
       sqft: totalSqft.toFixed(0),
       desc: `Drywall 4x8 Sheets (${l}' × ${w}' × ${h}' room)`,
-      laborHours: (sheets * 0.5).toFixed(2) // Estimate: 30 min per sheet
+      laborHours: (sheets * 0.5).toFixed(2)
     });
   };
 
@@ -251,30 +223,15 @@ function DrywallCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-3 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Length (ft)</Label>
-            <NumericInput 
-              placeholder="Room length" 
-              value={inputs.length} 
-              onChange={(v) => setInputs({ ...inputs, length: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Room length" value={inputs.length} onChange={(v) => setInputs({ ...inputs, length: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Width (ft)</Label>
-            <NumericInput 
-              placeholder="Room width" 
-              value={inputs.width} 
-              onChange={(v) => setInputs({ ...inputs, width: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Room width" value={inputs.width} onChange={(v) => setInputs({ ...inputs, width: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Height (ft)</Label>
-            <NumericInput 
-              placeholder="Ceiling height" 
-              value={inputs.height} 
-              onChange={(v) => setInputs({ ...inputs, height: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Ceiling height" value={inputs.height} onChange={(v) => setInputs({ ...inputs, height: v })} disabled={saving} />
           </div>
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
@@ -283,32 +240,12 @@ function DrywallCalculator({ onSave, saving, laborRate }) {
             <p className="text-sm font-bold">Sheets Needed: {results.qty}</p>
             <p className="text-xs text-gray-500">Coverage: {results.sqft} sq ft</p>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-drywall" 
-              />
-              <Label htmlFor="labor-drywall" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-drywall" />
+              <Label htmlFor="labor-drywall" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput 
-                placeholder="Cost per sheet" 
-                value={inputs.cost} 
-                onChange={(v) => setInputs({...inputs, cost: v})} 
-                disabled={saving} 
-              />
-              <Button 
-                onClick={() => onSave(
-                  results.desc, 
-                  results.qty, 
-                  inputs.cost, 
-                  includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )} 
-                disabled={saving || !inputs.cost}
-              >
+              <NumericInput placeholder="Cost per sheet" value={inputs.cost} onChange={(v) => setInputs({...inputs, cost: v})} disabled={saving} />
+              <Button onClick={() => onSave(results.desc, results.qty, inputs.cost, includeLabor ? { hours: results.laborHours, rate: laborRate } : null)} disabled={saving || !inputs.cost}>
                 <Save className="w-4 h-4" />
               </Button>
             </div>
@@ -319,7 +256,7 @@ function DrywallCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 7: CALCULATOR - Paint ==========
+// ========== SECTION 8: CALCULATOR - Paint ==========
 function PaintCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ sqft: '', coats: '2', cost: '' });
   const [results, setResults] = useState(null);
@@ -329,12 +266,11 @@ function PaintCalculator({ onSave, saving, laborRate }) {
     const sqft = parseFloat(inputs.sqft);
     const coats = parseFloat(inputs.coats);
     if (!sqft || !coats) return;
-    // Formula: gallons = (sqft × coats) / 350 coverage per gallon
     const gallons = Math.ceil((sqft * coats) / 350);
     setResults({
       qty: gallons,
       desc: `Paint Gallons (${sqft} sq ft, ${coats} coats)`,
-      laborHours: (sqft / 150).toFixed(2) // Estimate: 150 sqft per hour
+      laborHours: (sqft / 150).toFixed(2)
     });
   };
 
@@ -345,21 +281,11 @@ function PaintCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Area (sq ft)</Label>
-            <NumericInput 
-              placeholder="Square feet" 
-              value={inputs.sqft} 
-              onChange={(v) => setInputs({ ...inputs, sqft: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Square feet" value={inputs.sqft} onChange={(v) => setInputs({ ...inputs, sqft: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Coats</Label>
-            <NumericInput 
-              placeholder="Number of coats" 
-              value={inputs.coats} 
-              onChange={(v) => setInputs({ ...inputs, coats: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Number of coats" value={inputs.coats} onChange={(v) => setInputs({ ...inputs, coats: v })} disabled={saving} />
           </div>
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
@@ -367,32 +293,12 @@ function PaintCalculator({ onSave, saving, laborRate }) {
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded space-y-3">
             <p className="text-sm font-bold">Gallons Needed: {results.qty}</p>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-paint" 
-              />
-              <Label htmlFor="labor-paint" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-paint" />
+              <Label htmlFor="labor-paint" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput 
-                placeholder="Cost per gallon" 
-                value={inputs.cost} 
-                onChange={(v) => setInputs({...inputs, cost: v})} 
-                disabled={saving} 
-              />
-              <Button 
-                onClick={() => onSave(
-                  results.desc, 
-                  results.qty, 
-                  inputs.cost, 
-                  includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )} 
-                disabled={saving || !inputs.cost}
-              >
+              <NumericInput placeholder="Cost per gallon" value={inputs.cost} onChange={(v) => setInputs({...inputs, cost: v})} disabled={saving} />
+              <Button onClick={() => onSave(results.desc, results.qty, inputs.cost, includeLabor ? { hours: results.laborHours, rate: laborRate } : null)} disabled={saving || !inputs.cost}>
                 <Save className="w-4 h-4" />
               </Button>
             </div>
@@ -403,7 +309,7 @@ function PaintCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 8: CALCULATOR - Trim ==========
+// ========== SECTION 9: CALCULATOR - Trim ==========
 function TrimCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ length: '', waste: '10', cost: '' });
   const [results, setResults] = useState(null);
@@ -413,12 +319,11 @@ function TrimCalculator({ onSave, saving, laborRate }) {
     const len = parseFloat(inputs.length);
     const waste = parseFloat(inputs.waste);
     if (!len) return;
-    // Formula: total LF = length × (1 + waste%)
     const totalLF = Math.ceil(len * (1 + (waste || 0) / 100));
     setResults({
       qty: totalLF,
       desc: `Trim (${len} LF + ${waste}% waste)`,
-      laborHours: (totalLF / 20).toFixed(2) // Estimate: 20 LF per hour
+      laborHours: (totalLF / 20).toFixed(2)
     });
   };
 
@@ -429,21 +334,11 @@ function TrimCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Linear Feet</Label>
-            <NumericInput 
-              placeholder="Length needed" 
-              value={inputs.length} 
-              onChange={(v) => setInputs({ ...inputs, length: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Length needed" value={inputs.length} onChange={(v) => setInputs({ ...inputs, length: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Waste %</Label>
-            <NumericInput 
-              placeholder="Waste factor" 
-              value={inputs.waste} 
-              onChange={(v) => setInputs({ ...inputs, waste: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Waste factor" value={inputs.waste} onChange={(v) => setInputs({ ...inputs, waste: v })} disabled={saving} />
           </div>
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
@@ -451,32 +346,12 @@ function TrimCalculator({ onSave, saving, laborRate }) {
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded space-y-3">
             <p className="text-sm font-bold">Total Linear Feet: {results.qty}</p>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-trim" 
-              />
-              <Label htmlFor="labor-trim" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-trim" />
+              <Label htmlFor="labor-trim" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput 
-                placeholder="Cost per LF" 
-                value={inputs.cost} 
-                onChange={(v) => setInputs({...inputs, cost: v})} 
-                disabled={saving} 
-              />
-              <Button 
-                onClick={() => onSave(
-                  results.desc, 
-                  results.qty, 
-                  inputs.cost, 
-                  includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )} 
-                disabled={saving || !inputs.cost}
-              >
+              <NumericInput placeholder="Cost per LF" value={inputs.cost} onChange={(v) => setInputs({...inputs, cost: v})} disabled={saving} />
+              <Button onClick={() => onSave(results.desc, results.qty, inputs.cost, includeLabor ? { hours: results.laborHours, rate: laborRate } : null)} disabled={saving || !inputs.cost}>
                 <Save className="w-4 h-4" />
               </Button>
             </div>
@@ -487,7 +362,7 @@ function TrimCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 9: CALCULATOR - Materials (General Purpose) ==========
+// ========== SECTION 10: CALCULATOR - Materials (General) ==========
 function MaterialsCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ qty: '', desc: '', cost: '' });
   const [includeLabor, setIncludeLabor] = useState(false);
@@ -497,12 +372,7 @@ function MaterialsCalculator({ onSave, saving, laborRate }) {
     const q = parseFloat(inputs.qty);
     const c = parseFloat(inputs.cost);
     if (!q || !c || !inputs.desc.trim()) return;
-    onSave(
-      inputs.desc.trim(),
-      q,
-      inputs.cost,
-      includeLabor && laborHours ? { hours: laborHours, rate: laborRate } : null
-    );
+    onSave(inputs.desc.trim(), q, inputs.cost, includeLabor && laborHours ? { hours: laborHours, rate: laborRate } : null);
   };
 
   return (
@@ -511,56 +381,26 @@ function MaterialsCalculator({ onSave, saving, laborRate }) {
       <CardContent className="space-y-4">
         <div>
           <Label className="text-xs text-gray-500">Description</Label>
-          <Input 
-            placeholder="Material description" 
-            value={inputs.desc} 
-            onChange={(e) => setInputs({ ...inputs, desc: e.target.value })} 
-            disabled={saving} 
-          />
+          <Input placeholder="Material description" value={inputs.desc} onChange={(e) => setInputs({ ...inputs, desc: e.target.value })} disabled={saving} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Quantity</Label>
-            <NumericInput 
-              placeholder="Qty" 
-              value={inputs.qty} 
-              onChange={(v) => setInputs({ ...inputs, qty: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Qty" value={inputs.qty} onChange={(v) => setInputs({ ...inputs, qty: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Unit Cost</Label>
-            <NumericInput 
-              placeholder="Cost each" 
-              value={inputs.cost} 
-              onChange={(v) => setInputs({ ...inputs, cost: v })} 
-              disabled={saving} 
-            />
+            <NumericInput placeholder="Cost each" value={inputs.cost} onChange={(v) => setInputs({ ...inputs, cost: v })} disabled={saving} />
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <input 
-            type="checkbox" 
-            checked={includeLabor} 
-            onChange={(e) => setIncludeLabor(e.target.checked)} 
-            id="labor-materials" 
-          />
+          <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-materials" />
           <Label htmlFor="labor-materials" className="text-xs cursor-pointer">Include Labor</Label>
           {includeLabor && (
-            <NumericInput 
-              placeholder="Hours" 
-              value={laborHours} 
-              onChange={setLaborHours} 
-              disabled={saving} 
-              className="w-20" 
-            />
+            <NumericInput placeholder="Hours" value={laborHours} onChange={setLaborHours} disabled={saving} className="w-20" />
           )}
         </div>
-        <Button 
-          onClick={handleSave} 
-          className="w-full" 
-          disabled={saving || !inputs.qty || !inputs.cost || !inputs.desc.trim()}
-        >
+        <Button onClick={handleSave} className="w-full" disabled={saving || !inputs.qty || !inputs.cost || !inputs.desc.trim()}>
           <Save className="w-4 h-4 mr-2" /> Save to Estimate
         </Button>
       </CardContent>
@@ -568,7 +408,7 @@ function MaterialsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 10: CALCULATOR - Stairs ==========
+// ========== SECTION 11: CALCULATOR - Stairs ==========
 function StairsCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ rise: '', treadCost: '', riserCost: '', stringerCost: '' });
   const [results, setResults] = useState(null);
@@ -577,39 +417,23 @@ function StairsCalculator({ onSave, saving, laborRate }) {
   const calculate = () => {
     const totalRise = parseFloat(inputs.rise);
     if (!totalRise) return;
-    // Standard: 7.5" rise per step
     const steps = Math.ceil(totalRise / 7.5);
-    const treads = steps;
-    const risers = steps + 1;
-    const stringers = 3; // Standard: 3 stringers
     setResults({
       steps,
-      treads,
-      risers,
-      stringers,
+      treads: steps,
+      risers: steps + 1,
+      stringers: 3,
       desc: `Staircase (${totalRise}" rise, ${steps} steps)`,
-      laborHours: (steps * 0.75).toFixed(2) // Estimate: 45 min per step
+      laborHours: (steps * 0.75).toFixed(2)
     });
   };
 
   const handleSave = () => {
     if (!results) return;
-    // Save treads
-    if (inputs.treadCost) {
-      onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
-    }
-    // Save risers
-    if (inputs.riserCost) {
-      onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
-    }
-    // Save stringers
-    if (inputs.stringerCost) {
-      onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
-    }
-    // Save labor once if selected
-    if (includeLabor) {
-      onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
-    }
+    if (inputs.treadCost) onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
+    if (inputs.riserCost) onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
+    if (inputs.stringerCost) onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
+    if (includeLabor) onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
   };
 
   return (
@@ -618,12 +442,7 @@ function StairsCalculator({ onSave, saving, laborRate }) {
       <CardContent className="space-y-4">
         <div>
           <Label className="text-xs text-gray-500">Total Rise (inches)</Label>
-          <NumericInput 
-            placeholder="Floor to floor height" 
-            value={inputs.rise} 
-            onChange={(v) => setInputs({ ...inputs, rise: v })} 
-            disabled={saving} 
-          />
+          <NumericInput placeholder="Floor to floor height" value={inputs.rise} onChange={(v) => setInputs({ ...inputs, rise: v })} disabled={saving} />
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
         {results && (
@@ -635,50 +454,24 @@ function StairsCalculator({ onSave, saving, laborRate }) {
               <p><span className="font-bold">Stringers:</span> {results.stringers}</p>
             </div>
             <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={includeLabor} 
-                onChange={(e) => setIncludeLabor(e.target.checked)} 
-                id="labor-stairs" 
-              />
-              <Label htmlFor="labor-stairs" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-stairs" />
+              <Label htmlFor="labor-stairs" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
                 <Label className="text-xs text-gray-500">Tread $</Label>
-                <NumericInput 
-                  placeholder="Each" 
-                  value={inputs.treadCost} 
-                  onChange={(v) => setInputs({...inputs, treadCost: v})} 
-                  disabled={saving} 
-                />
+                <NumericInput placeholder="Each" value={inputs.treadCost} onChange={(v) => setInputs({...inputs, treadCost: v})} disabled={saving} />
               </div>
               <div>
                 <Label className="text-xs text-gray-500">Riser $</Label>
-                <NumericInput 
-                  placeholder="Each" 
-                  value={inputs.riserCost} 
-                  onChange={(v) => setInputs({...inputs, riserCost: v})} 
-                  disabled={saving} 
-                />
+                <NumericInput placeholder="Each" value={inputs.riserCost} onChange={(v) => setInputs({...inputs, riserCost: v})} disabled={saving} />
               </div>
               <div>
                 <Label className="text-xs text-gray-500">Stringer $</Label>
-                <NumericInput 
-                  placeholder="Each" 
-                  value={inputs.stringerCost} 
-                  onChange={(v) => setInputs({...inputs, stringerCost: v})} 
-                  disabled={saving} 
-                />
+                <NumericInput placeholder="Each" value={inputs.stringerCost} onChange={(v) => setInputs({...inputs, stringerCost: v})} disabled={saving} />
               </div>
             </div>
-            <Button 
-              onClick={handleSave} 
-              className="w-full"
-              disabled={saving || (!inputs.treadCost && !inputs.riserCost && !inputs.stringerCost)}
-            >
+            <Button onClick={handleSave} className="w-full" disabled={saving || (!inputs.treadCost && !inputs.riserCost && !inputs.stringerCost)}>
               <Save className="w-4 h-4 mr-2" /> Save All to Estimate
             </Button>
           </div>
@@ -688,7 +481,7 @@ function StairsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 11: STATIC - Layout Reference ==========
+// ========== SECTION 12: STATIC - Layout Reference ==========
 function LayoutReference() {
   return (
     <Card>
@@ -706,19 +499,17 @@ function LayoutReference() {
         <div className="p-3 bg-blue-50 rounded border border-blue-200">
           <p className="font-bold">Door Rough Openings</p>
           <p className="text-gray-600">Width + 2", Height + 2.5"</p>
-          <p className="text-gray-600">30" door → 32" × 82.5" RO</p>
         </div>
         <div className="p-3 bg-blue-50 rounded border border-blue-200">
           <p className="font-bold">Window Rough Openings</p>
           <p className="text-gray-600">Window size + ½" each side</p>
-          <p className="text-gray-600">36×48 → 37" × 49" RO</p>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// ========== SECTION 12: STATIC - Conversions Reference ==========
+// ========== SECTION 13: STATIC - Conversions Reference ==========
 function ConversionsReference() {
   return (
     <Card>
@@ -726,107 +517,70 @@ function ConversionsReference() {
       <CardContent className="space-y-3 text-sm">
         <div className="p-3 bg-amber-50 rounded border border-amber-200">
           <p className="font-bold">Length</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>1 foot = 12 inches</li>
-            <li>1 yard = 3 feet</li>
-            <li>1 meter = 3.281 feet</li>
-          </ul>
+          <p className="text-gray-600">1 foot = 12 inches | 1 yard = 3 feet | 1 meter = 3.281 feet</p>
         </div>
         <div className="p-3 bg-amber-50 rounded border border-amber-200">
           <p className="font-bold">Area</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>1 sq yard = 9 sq feet</li>
-            <li>1 acre = 43,560 sq feet</li>
-          </ul>
+          <p className="text-gray-600">1 sq yard = 9 sq feet | 1 acre = 43,560 sq feet</p>
         </div>
         <div className="p-3 bg-amber-50 rounded border border-amber-200">
           <p className="font-bold">Volume</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>1 cubic yard = 27 cubic feet</li>
-            <li>1 cubic foot = 7.48 gallons</li>
-          </ul>
+          <p className="text-gray-600">1 cubic yard = 27 cubic feet | 1 cubic foot = 7.48 gallons</p>
         </div>
         <div className="p-3 bg-amber-50 rounded border border-amber-200">
           <p className="font-bold">Weight</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>Concrete: ~150 lbs/cu ft</li>
-            <li>Drywall ½": ~1.6 lbs/sq ft</li>
-          </ul>
+          <p className="text-gray-600">Concrete: ~150 lbs/cu ft | Drywall ½": ~1.6 lbs/sq ft</p>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// ========== SECTION 13: STATIC - Specs Reference ==========
+// ========== SECTION 14: STATIC - Specs Reference ==========
 function SpecsReference() {
   return (
     <Card>
       <CardHeader><CardTitle>Common Specs Reference</CardTitle></CardHeader>
       <CardContent className="space-y-3 text-sm">
         <div className="p-3 bg-purple-50 rounded border border-purple-200">
-          <p className="font-bold">Lumber (Actual Dimensions)</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>2×4 = 1.5" × 3.5"</li>
-            <li>2×6 = 1.5" × 5.5"</li>
-            <li>2×8 = 1.5" × 7.25"</li>
-            <li>2×10 = 1.5" × 9.25"</li>
-          </ul>
+          <p className="font-bold">Lumber (Actual)</p>
+          <p className="text-gray-600">2×4 = 1.5"×3.5" | 2×6 = 1.5"×5.5" | 2×8 = 1.5"×7.25"</p>
         </div>
         <div className="p-3 bg-purple-50 rounded border border-purple-200">
-          <p className="font-bold">Drywall Sheets</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>4×8 = 32 sq ft</li>
-            <li>4×12 = 48 sq ft</li>
-          </ul>
+          <p className="font-bold">Drywall</p>
+          <p className="text-gray-600">4×8 = 32 sq ft | 4×12 = 48 sq ft</p>
         </div>
         <div className="p-3 bg-purple-50 rounded border border-purple-200">
           <p className="font-bold">Paint Coverage</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>Interior: 350-400 sq ft/gal</li>
-            <li>Exterior: 250-350 sq ft/gal</li>
-          </ul>
+          <p className="text-gray-600">Interior: 350-400 sq ft/gal | Exterior: 250-350 sq ft/gal</p>
         </div>
         <div className="p-3 bg-purple-50 rounded border border-purple-200">
-          <p className="font-bold">Stair Code (Residential)</p>
-          <ul className="text-gray-600 space-y-1">
-            <li>Max rise: 7.75"</li>
-            <li>Min run: 10"</li>
-            <li>Min width: 36"</li>
-          </ul>
+          <p className="font-bold">Stair Code</p>
+          <p className="text-gray-600">Max rise: 7.75" | Min run: 10" | Min width: 36"</p>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-// ========== SECTION 14: MAIN COMPONENT EXPORT ==========
+// ========== SECTION 15: MAIN COMPONENT EXPORT ==========
 export default function HandymanCalculators({ preSelectedEstimateId }) {
-  // ========== State: Tab persistence via localStorage ==========
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('hc_lastTab') || 'framing';
-    }
-    return 'framing';
-  });
-
+  const [activeCalculator, setActiveCalculator] = useState('framing');
   const [estimates, setEstimates] = useState([]);
   const [selectedEstimateId, setSelectedEstimateId] = useState(preSelectedEstimateId || '');
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [laborRate, setLaborRate] = useState(REGIONAL_PRICING.labor.default);
 
-  // ========== Effect: Save active tab to localStorage ==========
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('hc_lastTab', activeTab);
-    }
-  }, [activeTab]);
-
-  // ========== Effect: Fetch estimates (list all, filter client-side) ==========
+  // ========== Effect: Fetch estimates using global base44 ==========
   useEffect(() => {
     const fetchEstimates = async () => {
       try {
+        // Access base44 from global scope (injected by Base44 runtime)
+        if (typeof base44 === 'undefined' || !base44.entities?.JobEstimate) {
+          console.error('base44.entities.JobEstimate not available');
+          return;
+        }
         const res = await base44.entities.JobEstimate.list();
         const filtered = (res || []).filter(e => 
           e.status === 'draft' || e.status === 'sent'
@@ -842,15 +596,12 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
   // ========== Handler: Save item to selected estimate ==========
   const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
-    // Guard: require estimate selection
     if (!selectedEstimateId) {
       alert('Please select an estimate first');
       return;
     }
-    // Guard: prevent double-save
     if (saving) return;
 
-    // Validate numeric inputs
     const q = parseFloat(qty);
     const c = parseFloat(cost);
     if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
@@ -858,42 +609,32 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
       return;
     }
 
+    // Check base44 availability
+    if (typeof base44 === 'undefined' || !base44.entities?.JobEstimate) {
+      alert('System error: Cannot access estimates');
+      return;
+    }
+
     setSaving(true);
     try {
-      // Fetch current estimate
       const est = await base44.entities.JobEstimate.read(selectedEstimateId);
       if (!est.items) est.items = [];
 
-      // Add material item
-      est.items.push({
-        description: desc,
-        quantity: q,
-        unit_cost: c,
-        total: q * c
-      });
+      est.items.push({ description: desc, quantity: q, unit_cost: c, total: q * c });
 
-      // Add labor item if applicable
       if (laborObj) {
         const lh = parseFloat(laborObj.hours);
         const lr = parseFloat(laborObj.rate);
         if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
-          est.items.push({
-            description: `Labor: ${desc}`,
-            quantity: lh,
-            unit_cost: lr,
-            total: lh * lr
-          });
+          est.items.push({ description: `Labor: ${desc}`, quantity: lh, unit_cost: lr, total: lh * lr });
         }
       }
 
-      // Recalculate totals
       est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
       est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
 
-      // Save updated estimate
       await base44.entities.JobEstimate.update(est);
 
-      // Show success feedback
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
@@ -903,10 +644,10 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     }
   };
 
-  // ========== Renderer: Active calculator based on tab ==========
+  // ========== Renderer: Active calculator ==========
   const renderActiveCalculator = () => {
     const props = { onSave: handleSaveItem, saving, laborRate };
-    switch (activeTab) {
+    switch (activeCalculator) {
       case 'framing': return <FramingCalculator {...props} />;
       case 'concrete': return <ConcreteCalculator {...props} />;
       case 'drywall': return <DrywallCalculator {...props} />;
@@ -934,7 +675,8 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
       {/* Header: Estimate Selector + Labor Rate */}
       <div className="p-4 bg-slate-50 border rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Estimate Selector */}
           <div className="space-y-2">
             <Label>Target Estimate</Label>
             <select 
@@ -949,31 +691,37 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
               ))}
             </select>
           </div>
+
+          {/* Calculator Selector (Dropdown) */}
           <div className="space-y-2">
-            <Label>Labor Rate ($/hr) — {REGIONAL_PRICING.region}</Label>
-            <NumericInput 
-              value={laborRate} 
-              onChange={(v) => setLaborRate(parseFloat(v) || REGIONAL_PRICING.labor.default)} 
-              disabled={saving} 
-              className="bg-white" 
-            />
+            <Label>Calculator</Label>
+            <select 
+              className="w-full p-2 border rounded bg-white" 
+              value={activeCalculator} 
+              onChange={(e) => setActiveCalculator(e.target.value)} 
+              disabled={saving}
+            >
+              {CALCULATOR_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Labor Rate */}
+          <div className="space-y-2">
+            <Label>Labor Rate — {REGIONAL_PRICING.region}</Label>
+            <div className="flex items-center gap-1">
+              <span className="text-gray-500">$</span>
+              <NumericInput 
+                value={laborRate} 
+                onChange={(v) => setLaborRate(parseFloat(v) || REGIONAL_PRICING.labor.default)} 
+                disabled={saving} 
+                className="bg-white" 
+              />
+              <span className="text-gray-500">/hr</span>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="flex flex-wrap gap-2">
-        {['framing', 'concrete', 'drywall', 'paint', 'trim', 'materials', 'stairs', 'layout', 'conversions', 'specs'].map(tab => (
-          <Button 
-            key={tab} 
-            variant={activeTab === tab ? 'default' : 'outline'} 
-            onClick={() => setActiveTab(tab)} 
-            disabled={saving} 
-            className="capitalize"
-          >
-            {tab}
-          </Button>
-        ))}
       </div>
 
       {/* Active Calculator */}
