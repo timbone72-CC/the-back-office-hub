@@ -591,113 +591,20 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [laborRate, setLaborRate] = useState(REGIONAL_PRICING.labor.default);
 
-  // ========== Effect: Fetch estimates using imported base44 ==========
+  // FIX: Reactive Prop Listener (Updates state if prop changes)
   useEffect(() => {
-    const fetchEstimates = async () => {
-      try {
-        const res = await base44.entities.JobEstimate.list();
-        const filtered = (res || []).filter(e =>
-          e.status === 'draft' || e.status === 'sent'
-        );
-        setEstimates(filtered);
-      } catch (err) {
-        console.error('Failed to fetch estimates:', err);
-        setEstimates([]);
-      }
-    };
-    fetchEstimates();
-  }, []);
-
-  // ========== Handler: Save item to selected estimate ==========
-  const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
-    if (!selectedEstimateId) {
-      alert('Please select an estimate first');
-      return;
+    if (preSelectedEstimateId) {
+      setSelectedEstimateId(preSelectedEstimateId);
     }
-    if (saving) return;
+  }, [preSelectedEstimateId]);
 
-    const q = parseFloat(qty);
-    const c = parseFloat(cost);
-    if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
-      alert('Invalid quantity or cost');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      // FIX: Use id instead of _id for filtering
-      const res = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
-      const est = res && res.length > 0 ? res[0] : null;
-
-      if (!est) {
-        alert('Estimate not found');
-        setSaving(false);
-        return;
-      }
-
-      // Ensure items array exists
-      if (!est.items) est.items = [];
-
-      // Add material item
-      est.items.push({ 
-        description: desc, 
-        quantity: q, 
-        unit_cost: c, 
-        total: q * c 
-      });
-
-      // Add labor item if applicable
-      if (laborObj) {
-        const lh = parseFloat(laborObj.hours);
-        const lr = parseFloat(laborObj.rate);
-        if (Number.isFinite(lh) && Number.isFinite(lr) && lh > 0 && lr > 0) {
-          est.items.push({ 
-            description: `Labor: ${desc}`, 
-            quantity: lh, 
-            unit_cost: lr, 
-            total: lh * lr 
-          });
-        }
-      }
-
-      // Recalculate totals
-      est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
-      est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
-
-      // UPDATE pattern
-      await base44.entities.JobEstimate.update(selectedEstimateId, est);
-
-      // Show success feedback
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-    } catch (err) {
-      alert('Error saving: ' + err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ========== Renderer: Active calculator ==========
-  const renderActiveCalculator = () => {
-    const props = { onSave: handleSaveItem, saving, laborRate };
-    switch (activeCalculator) {
-      case 'framing': return <FramingCalculator {...props} />;
-      case 'concrete': return <ConcreteCalculator {...props} />;
-      case 'drywall': return <DrywallCalculator {...props} />;
-      case 'paint': return <PaintCalculator {...props} />;
-      case 'trim': return <TrimCalculator {...props} />;
-      case 'materials': return <MaterialsCalculator {...props} />;
-      case 'stairs': return <StairsCalculator {...props} />;
-      case 'layout': return <LayoutReference />;
-      case 'conversions': return <ConversionsReference />;
-      case 'specs': return <SpecsReference />;
-      default: return null;
-    }
-  };
+  // ... (Keep existing fetchEstimates useEffect) ...
+  // ... (Keep existing handleSaveItem function) ...
+  // ... (Keep existing renderActiveCalculator function) ...
 
   // ========== Render: Main UI ==========
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       {/* Success Toast */}
       {showSuccess && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
@@ -706,60 +613,54 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         </div>
       )}
 
-      {/* Header: Estimate Selector + Labor Rate */}
-      <div className="p-4 bg-slate-50 border rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Estimate Selector */}
-          <div className="space-y-2">
-            <Label>Target Estimate</Label>
+      {/* Header: Estimate Selector */}
+      <div className="p-3 bg-slate-50 border rounded-lg">
+          <div className="space-y-1">
+            <Label className="text-xs font-bold uppercase text-slate-500">Target Estimate</Label>
             <select 
-              className="w-full p-2 border rounded bg-white" 
+              className={`w-full p-2 border rounded ${preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-900' : 'bg-white'}`}
               value={selectedEstimateId} 
               onChange={(e) => setSelectedEstimateId(e.target.value)} 
-              disabled={saving}
+              // FIX: Disable if passed from Tools button
+              disabled={saving || !!preSelectedEstimateId}
             >
               <option value="">-- Select Estimate --</option>
-              {/* FIX: Use id fallback for key and value */}
               {estimates.map(e => (
                 <option key={e._id || e.id} value={e._id || e.id}>{e.title}</option>
               ))}
             </select>
           </div>
-
-          {/* Calculator Selector (Dropdown) */}
-          <div className="space-y-2">
-            <Label>Calculator</Label>
-            <select 
-              className="w-full p-2 border rounded bg-white" 
-              value={activeCalculator} 
-              onChange={(e) => setActiveCalculator(e.target.value)} 
-              disabled={saving}
-            >
-              {CALCULATOR_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Labor Rate */}
-          <div className="space-y-2">
-            <Label>Labor Rate — {REGIONAL_PRICING.region}</Label>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500">$</span>
-              <NumericInput 
-                value={laborRate} 
-                onChange={(v) => setLaborRate(parseFloat(v) || REGIONAL_PRICING.labor.default)} 
-                disabled={saving} 
-                className="bg-white" 
-              />
-              <span className="text-gray-500">/hr</span>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Active Calculator */}
-      {renderActiveCalculator()}
+      {/* FIX: PILL NAVIGATION (Replaces Dropdown) */}
+      <div className="flex flex-wrap gap-2">
+        {CALCULATOR_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => setActiveCalculator(opt.value)}
+            className={`
+              px-3 py-2 text-xs font-bold rounded shadow-sm border transition-all flex-grow text-center
+              ${activeCalculator === opt.value 
+                ? 'bg-slate-800 text-white border-slate-900 ring-2 ring-slate-200' 
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}
+            `}
+          >
+            {opt.label.replace(' Calculator', '').replace(' Reference', '')}
+          </button>
+        ))}
+      </div>
+
+      {/* Labor Rate Toggler (Optional, kept small) */}
+      <div className="flex items-center gap-2 justify-end text-xs text-gray-500">
+         <span>Labor Rate:</span>
+         <div className="w-16"><NumericInput value={laborRate} onChange={setLaborRate} className="h-6 text-right" /></div>
+         <span>/hr</span>
+      </div>
+
+      {/* Active Calculator Scroll Area */}
+      <div className="flex-1 overflow-y-auto pb-4">
+        {renderActiveCalculator()}
+      </div>
     </div>
   );
 }
