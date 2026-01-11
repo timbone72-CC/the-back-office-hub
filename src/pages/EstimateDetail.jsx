@@ -375,11 +375,12 @@ export default function EstimateDetail() {
                     <Calculator className="w-4 h-4" /> Tools
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
+                  <DialogContent className="sm:max-w-[700px] h-[85vh] flex flex-col overflow-hidden">
                   <DialogHeader>
-                    <DialogTitle>Handyman Calculators</DialogTitle>
+                  <DialogTitle>Handyman Calculators</DialogTitle>
                   </DialogHeader>
-                  <HandymanCalculators />
+                  {/* We add the ID prop here so the calculator knows which job to select */}
+                  <HandymanCalculators preSelectedEstimateId={estimateId} />
                 </DialogContent>
               </Dialog>
 
