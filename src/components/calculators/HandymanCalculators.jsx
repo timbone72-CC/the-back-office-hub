@@ -10,136 +10,7 @@ import {
   Box, Package, Frame, Triangle, ArrowRightLeft, FileText, Save 
 } from 'lucide-react';
 
-// ==========================================
-// FINAL MERGED HANDYMAN CALCULATOR
-// ==========================================
-export default function HandymanCalculators({ preSelectedEstimateId }) {
-  
-  // --- STATE ---
-  const [activeTab, setActiveTab] = React.useState('framing');
-  const [estimates, setEstimates] = React.useState([]);
-  const [selectedEstimateId, setSelectedEstimateId] = React.useState('');
 
-  // --- 1. CONFIGURATION: TABS ---
-  const tabs = [
-    { id: 'framing', label: 'Framing', component: FramingCalculator },
-    { id: 'stairs', label: 'Stairs', component: StairsCalculator },
-    { id: 'concrete', label: 'Concrete', component: ConcreteCalculator },
-    { id: 'materials', label: 'Materials', component: MaterialsCalculator },
-    { id: 'drywall', label: 'Drywall', component: DrywallCalculator },
-    { id: 'paint', label: 'Paint', component: PaintCalculator },
-    { id: 'trim', label: 'Trim', component: TrimCalculator },
-    { id: 'layout', label: 'Layout', component: LayoutCalculator },
-    { id: 'convert', label: 'Convert', component: ConversionsCalculator },
-    { id: 'specs', label: 'Specs', component: SpecsReference },
-  ];
-
-  // --- 2. LOAD ESTIMATES ---
-  React.useEffect(() => {
-    const fetchEstimates = async () => {
-      try {
-        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
-        setEstimates(res || []);
-      } catch (e) { console.error(e); }
-    };
-    fetchEstimates();
-  }, []);
-
-  // --- 3. AUTO-SELECT LOGIC (For "Tools" Button) ---
-  React.useEffect(() => {
-    if (preSelectedEstimateId) {
-      setSelectedEstimateId(preSelectedEstimateId);
-    }
-  }, [preSelectedEstimateId]);
-
-  // --- 4. SAVE FUNCTION (Passed to Calculators) ---
-  const handleSaveItem = async (desc, qty, cost) => {
-    if (!selectedEstimateId) {
-      alert("⚠️ Please select an Estimate first.");
-      return;
-    }
-    
-    try {
-      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
-      const total = parseFloat(qty) * parseFloat(cost);
-      
-      const newItem = {
-        description: desc,
-        quantity: parseFloat(qty),
-        unit_cost: parseFloat(cost),
-        total: total,
-        unit: 'ea' // Default unit
-      };
-
-      if (!est.items) est.items = [];
-      est.items.push(newItem);
-      
-      // Recalculate Totals
-      let sub = 0;
-      est.items.forEach(i => sub += i.total);
-      est.subtotal = sub;
-      est.total_amount = sub * (1 + ((est.tax_rate || 0) / 100));
-
-      await base44.entities.JobEstimate.update(est);
-      alert(`✅ Saved "${desc}" to estimate!`);
-
-    } catch (e) {
-      console.error(e);
-      alert("Error saving item.");
-    }
-  };
-
-  // --- 5. RENDER ---
-  const ActiveComponent = tabs.find(t => t.id === activeTab)?.component || tabs[0].component;
-
-  return (
-    <div className="w-full h-full flex flex-col">
-      
-      {/* CONTEXT BAR */}
-      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
-          <div className="flex flex-col gap-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Saving to Estimate:</label>
-              <select 
-                value={selectedEstimateId}
-                onChange={(e) => setSelectedEstimateId(e.target.value)}
-                disabled={!!preSelectedEstimateId} // Lock if passed from Tools button
-                className={`w-full p-2 text-sm rounded border ${preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-800' : 'bg-white border-slate-300'}`}
-              >
-                  <option value="">-- Select an Estimate --</option>
-                  {estimates.map(e => (
-                    <option key={e._id} value={e._id}>{e.title}</option>
-                  ))}
-              </select>
-          </div>
-      </div>
-
-      {/* TAB BUTTONS (The Styling Fix) */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`
-              px-3 py-2 text-xs font-bold rounded shadow-sm border transition-all flex-grow text-center
-              ${activeTab === tab.id 
-                ? 'bg-slate-800 text-white border-slate-900 ring-2 ring-slate-200' 
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}
-            `}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ACTIVE CALCULATOR */}
-      <div className="flex-1 overflow-y-auto pr-1 pb-10">
-        {/* We pass the Save Function to the child component */}
-        <ActiveComponent onSave={handleSaveItem} />
-      </div>
-
-    </div>
-  );
-}
 
 // Reusable Save Panel Component
 function SaveToEstimatePanel({ description, quantity, unitLabel, onSave }) {
@@ -1469,5 +1340,136 @@ function ConversionsCalculator() {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// ==========================================
+// FINAL MERGED HANDYMAN CALCULATOR
+// ==========================================
+export default function HandymanCalculators({ preSelectedEstimateId }) {
+  
+  // --- STATE ---
+  const [activeTab, setActiveTab] = React.useState('framing');
+  const [estimates, setEstimates] = React.useState([]);
+  const [selectedEstimateId, setSelectedEstimateId] = React.useState('');
+
+  // --- 1. CONFIGURATION: TABS ---
+  const tabs = [
+    { id: 'framing', label: 'Framing', component: FramingCalculator },
+    { id: 'stairs', label: 'Stairs', component: StairsCalculator },
+    { id: 'concrete', label: 'Concrete', component: ConcreteCalculator },
+    { id: 'materials', label: 'Materials', component: MaterialsCalculator },
+    { id: 'drywall', label: 'Drywall', component: DrywallCalculator },
+    { id: 'paint', label: 'Paint', component: PaintCalculator },
+    { id: 'trim', label: 'Trim', component: TrimCalculator },
+    { id: 'layout', label: 'Layout', component: LayoutCalculator },
+    { id: 'convert', label: 'Convert', component: ConversionsCalculator },
+    { id: 'specs', label: 'Specs', component: SpecsReference },
+  ];
+
+  // --- 2. LOAD ESTIMATES ---
+  React.useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
+        setEstimates(res || []);
+      } catch (e) { console.error(e); }
+    };
+    fetchEstimates();
+  }, []);
+
+  // --- 3. AUTO-SELECT LOGIC (For "Tools" Button) ---
+  React.useEffect(() => {
+    if (preSelectedEstimateId) {
+      setSelectedEstimateId(preSelectedEstimateId);
+    }
+  }, [preSelectedEstimateId]);
+
+  // --- 4. SAVE FUNCTION (Passed to Calculators) ---
+  const handleSaveItem = async (desc, qty, cost) => {
+    if (!selectedEstimateId) {
+      alert("⚠️ Please select an Estimate first.");
+      return;
+    }
+    
+    try {
+      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
+      const total = parseFloat(qty) * parseFloat(cost);
+      
+      const newItem = {
+        description: desc,
+        quantity: parseFloat(qty),
+        unit_cost: parseFloat(cost),
+        total: total,
+        unit: 'ea' // Default unit
+      };
+
+      if (!est.items) est.items = [];
+      est.items.push(newItem);
+      
+      // Recalculate Totals
+      let sub = 0;
+      est.items.forEach(i => sub += i.total);
+      est.subtotal = sub;
+      est.total_amount = sub * (1 + ((est.tax_rate || 0) / 100));
+
+      await base44.entities.JobEstimate.update(est);
+      alert(`✅ Saved "${desc}" to estimate!`);
+
+    } catch (e) {
+      console.error(e);
+      alert("Error saving item.");
+    }
+  };
+
+  // --- 5. RENDER ---
+  const ActiveComponent = tabs.find(t => t.id === activeTab)?.component || tabs[0].component;
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      
+      {/* CONTEXT BAR */}
+      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
+          <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Saving to Estimate:</label>
+              <select 
+                value={selectedEstimateId}
+                onChange={(e) => setSelectedEstimateId(e.target.value)}
+                disabled={!!preSelectedEstimateId} // Lock if passed from Tools button
+                className={`w-full p-2 text-sm rounded border ${preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-800' : 'bg-white border-slate-300'}`}
+              >
+                  <option value="">-- Select an Estimate --</option>
+                  {estimates.map(e => (
+                    <option key={e._id} value={e._id}>{e.title}</option>
+                  ))}
+              </select>
+          </div>
+      </div>
+
+      {/* TAB BUTTONS (The Styling Fix) */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              px-3 py-2 text-xs font-bold rounded shadow-sm border transition-all flex-grow text-center
+              ${activeTab === tab.id 
+                ? 'bg-slate-800 text-white border-slate-900 ring-2 ring-slate-200' 
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}
+            `}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ACTIVE CALCULATOR */}
+      <div className="flex-1 overflow-y-auto pr-1 pb-10">
+        {/* We pass the Save Function to the child component */}
+        <ActiveComponent onSave={handleSaveItem} />
+      </div>
+
+    </div>
   );
 }
