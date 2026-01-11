@@ -1492,3 +1492,88 @@ function ConversionsCalculator() {
     </Card>
   );
 }
+
+// ==========================================
+// MAIN APP CONTAINER (PASTE AT VERY END)
+// ==========================================
+export default function HandymanCalculators({ preSelectedEstimateId }) {
+  
+  // 1. Define Tabs Config
+  const tabs = [
+    { id: 'framing', label: 'Framing', component: FramingCalculator },
+    { id: 'stairs', label: 'Stairs', component: StairsCalculator },
+    { id: 'concrete', label: 'Concrete', component: ConcreteCalculator },
+    { id: 'materials', label: 'Materials', component: MaterialsCalculator },
+    { id: 'drywall', label: 'Drywall', component: DrywallCalculator },
+    { id: 'paint', label: 'Paint', component: PaintCalculator },
+    { id: 'trim', label: 'Trim', component: TrimCalculator },
+    { id: 'layout', label: 'Layout', component: LayoutCalculator },
+    { id: 'convert', label: 'Convert', component: ConversionsCalculator },
+    { id: 'specs', label: 'Specs', component: SpecsReference },
+  ];
+
+  const [activeTab, setActiveTab] = React.useState(tabs[0].id);
+
+  // 2. Auto-Select Logic
+  React.useEffect(() => {
+    // Attempt to load estimates list if the global function exists
+    if (typeof loadDraftEstimates === 'function') {
+        loadDraftEstimates();
+    }
+
+    if (preSelectedEstimateId) {
+      setTimeout(() => {
+        const dropdown = document.getElementById('activeEstimateSelector');
+        if (dropdown) {
+          dropdown.value = preSelectedEstimateId;
+          dropdown.disabled = true; 
+          dropdown.style.backgroundColor = "#eff6ff"; 
+          dropdown.style.borderColor = "#3b82f6";
+          dropdown.style.color = "#1e40af";
+          dropdown.style.fontWeight = "bold";
+        }
+      }, 300);
+    }
+  }, [preSelectedEstimateId]);
+
+  const ActiveComponent = tabs.find(t => t.id === activeTab)?.component || tabs[0].component;
+
+  return (
+    <div className="w-full h-full flex flex-col">
+      
+      {/* CONTEXT BAR */}
+      <div className="bg-slate-50 p-3 border-b border-slate-200 mb-4 rounded-lg">
+          <div className="flex flex-col gap-1">
+              <label className="text-xs font-bold text-slate-500 uppercase">Saving to Estimate:</label>
+              <select id="activeEstimateSelector" className="w-full p-2 text-sm rounded border border-slate-300">
+                  <option value="">-- Loading Estimates... --</option>
+              </select>
+          </div>
+      </div>
+
+      {/* NEW TAB NAVIGATION (Buttons) */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              px-3 py-2 text-xs font-bold rounded shadow-sm border transition-all flex-grow text-center
+              ${activeTab === tab.id 
+                ? 'bg-slate-800 text-white border-slate-900 ring-2 ring-slate-200' 
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}
+            `}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ACTIVE CALCULATOR AREA */}
+      <div className="flex-1 overflow-y-auto pr-1 pb-10">
+        <ActiveComponent />
+      </div>
+
+    </div>
+  );
+}
