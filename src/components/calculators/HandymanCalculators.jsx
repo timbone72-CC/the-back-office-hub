@@ -611,3 +611,63 @@ function MaterialsCalculator({ onSave }) {
     </Card>
   );
 }
+
+// --- STAIRS CALCULATOR ---
+function StairsCalculator({ onSave }) {
+  const [rise, setRise] = useState('');
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const totalRise = parseFloat(rise);
+    if (!totalRise) return;
+
+    const maxRiser = 7.75;
+    const numRisers = Math.ceil(totalRise / maxRiser);
+    const riserHeight = totalRise / numRisers;
+    const numTreads = numRisers - 1;
+
+    setResults({
+      treads: numTreads,
+      description: `Stairs: ${numRisers} risers @ ${riserHeight.toFixed(2)}"`,
+      message: `Risers: ${numRisers} | Treads: ${numTreads} | Riser Height: ${riserHeight.toFixed(
+        2
+      )}"`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Stairs</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div>
+          <Label>Total Rise (inches)</Label>
+          <Input
+            type="number"
+            value={rise}
+            onChange={(e) => setRise(e.target.value)}
+          />
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.treads}
+              unitLabel="Price per Tread ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
