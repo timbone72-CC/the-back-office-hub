@@ -1,36 +1,38 @@
-import Dashboard from './pages/Dashboard';
-import ClientProfiles from './pages/ClientProfiles';
-import ClientDetail from './pages/ClientDetail';
-import JobEstimates from './pages/JobEstimates';
-import ScheduleLeads from './pages/ScheduleLeads';
-import EstimateDetail from './pages/EstimateDetail';
-import ScheduleLeadDetail from './pages/ScheduleLeadDetail';
 import Calculators from './pages/Calculators';
-import MaterialProcurement from './pages/MaterialProcurement';
+import ClientDetail from './pages/ClientDetail';
+import ClientProfiles from './pages/ClientProfiles';
+import Dashboard from './pages/Dashboard';
 import DataImport from './pages/DataImport';
-import JobDetail from './pages/JobDetail';
+import EstimateDetail from './pages/EstimateDetail';
+import Home from './pages/Home';
 import Inventory from './pages/Inventory';
-import Portfolio from './pages/Portfolio';
+import JobDetail from './pages/JobDetail';
+import JobEstimates from './pages/JobEstimates';
 import JobKits from './pages/JobKits';
+import MaterialProcurement from './pages/MaterialProcurement';
+import Portfolio from './pages/Portfolio';
+import ScheduleLeadDetail from './pages/ScheduleLeadDetail';
+import ScheduleLeads from './pages/ScheduleLeads';
 import SystemLogs from './pages/SystemLogs';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Dashboard": Dashboard,
-    "ClientProfiles": ClientProfiles,
-    "ClientDetail": ClientDetail,
-    "JobEstimates": JobEstimates,
-    "ScheduleLeads": ScheduleLeads,
-    "EstimateDetail": EstimateDetail,
-    "ScheduleLeadDetail": ScheduleLeadDetail,
     "Calculators": Calculators,
-    "MaterialProcurement": MaterialProcurement,
+    "ClientDetail": ClientDetail,
+    "ClientProfiles": ClientProfiles,
+    "Dashboard": Dashboard,
     "DataImport": DataImport,
-    "JobDetail": JobDetail,
+    "EstimateDetail": EstimateDetail,
+    "Home": Home,
     "Inventory": Inventory,
-    "Portfolio": Portfolio,
+    "JobDetail": JobDetail,
+    "JobEstimates": JobEstimates,
     "JobKits": JobKits,
+    "MaterialProcurement": MaterialProcurement,
+    "Portfolio": Portfolio,
+    "ScheduleLeadDetail": ScheduleLeadDetail,
+    "ScheduleLeads": ScheduleLeads,
     "SystemLogs": SystemLogs,
 }
 
