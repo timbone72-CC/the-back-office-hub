@@ -337,3 +337,103 @@ function DrywallCalculator({ onSave }) {
   );
 }
 
+// --- PAINT CALCULATOR ---
+function PaintCalculator({ onSave }) {
+  const [inputs, setInputs] = useState({
+    length: '',
+    width: '',
+    height: '8',
+    coats: '1',
+  });
+
+  const [results, setResults] = useState(null);
+
+  const calculate = () => {
+    const l = parseFloat(inputs.length);
+    const w = parseFloat(inputs.width);
+    const h = parseFloat(inputs.height);
+    const coats = parseInt(inputs.coats);
+
+    if (!l || !w || !h || !coats) return;
+
+    const wallArea = 2 * (l + w) * h;
+    const coverage = 350;
+    const gallons = Math.ceil((wallArea * coats) / coverage);
+
+    setResults({
+      gallons,
+      description: `Paint: ${l}' × ${w}' room (${coats} coat${coats > 1 ? 's' : ''})`,
+      message: `Wall Area: ${Math.round(wallArea)} sq ft | Paint Needed: ${gallons} gal`,
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Paint</CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label>Length (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.length}
+              onChange={(e) => setInputs({ ...inputs, length: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label>Width (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.width}
+              onChange={(e) => setInputs({ ...inputs, width: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label>Height (ft)</Label>
+            <Input
+              type="number"
+              value={inputs.height}
+              onChange={(e) => setInputs({ ...inputs, height: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <Label>Coats</Label>
+            <select
+              className="w-full h-10 px-3 border rounded-md"
+              value={inputs.coats}
+              onChange={(e) => setInputs({ ...inputs, coats: e.target.value })}
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+        </div>
+
+        <Button onClick={calculate} className="w-full">
+          Calculate
+        </Button>
+
+        {results && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded">
+            <p className="font-bold text-green-800">{results.message}</p>
+
+            <SaveToEstimatePanel
+              description={results.description}
+              quantity={results.gallons}
+              unitLabel="Price per Gallon ($)"
+              onSave={onSave}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
