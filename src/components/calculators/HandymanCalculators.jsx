@@ -2,14 +2,14 @@
 
 // ========== SECTION 1: IMPORTS ==========
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save, CheckCircle2 } from 'lucide-react';
 
-const { JobEstimate } = base44.entities;
+// Base44 runtime provides entities globally
+const JobEstimate = window.base44?.entities?.JobEstimate || base44?.entities?.JobEstimate;
 
 // ========== SECTION 2: REGIONAL PRICING CONFIG ==========
 const REGIONAL_PRICING = {
