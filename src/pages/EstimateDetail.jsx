@@ -751,3 +751,78 @@ function JobKitLoader({ onItemAdd }) {
     </Card>
   );
 }
+
+// ==========================================
+// CLEANER JOB KIT LOADER (DROPDOWN)
+// ==========================================
+function JobKitLoader({ onItemAdd }) {
+  const [kits, setKits] = useState([]);
+  const [selectedKitId, setSelectedKitId] = useState('');
+
+  useEffect(() => {
+    base44.entities.JobKit.list('name', 100).then(res => setKits(res || []));
+  }, []);
+
+  const loadKit = async () => {
+    if (!selectedKitId) return;
+    const kit = kits.find(k => k.id === selectedKitId);
+    
+    if (!confirm(`Load "${kit.name}"?`)) return;
+
+    try {
+      const items = await base44.entities.JobKitItem.filter({ job_kit_id: kit.id });
+      if (!items || items.length === 0) {
+        toast.error("Kit is empty!");
+        return;
+      }
+
+      items.forEach(item => {
+        onItemAdd({
+          description: `${item.category}: ${item.item_name}`, 
+          quantity: item.default_qty || 0,
+          unit_cost: item.default_cost || 0,
+          total: 0
+        });
+      });
+      
+      toast.success(`Loaded ${kit.name}`);
+      setSelectedKitId(''); // Reset dropdown
+      
+    } catch (e) {
+      toast.error("Failed to load kit");
+    }
+  };
+
+  if (kits.length === 0) return null;
+
+  return (
+    <Card className="border-indigo-100 bg-indigo-50/50 mb-6">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-indigo-900 text-lg flex items-center gap-2">
+          <Package className="w-5 h-5" />
+          Quick Load Job Kits
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex gap-3">
+        <Select value={selectedKitId} onValueChange={setSelectedKitId}>
+          <SelectTrigger className="w-[300px] bg-white border-indigo-200">
+            <SelectValue placeholder="Select a Job Kit..." />
+          </SelectTrigger>
+          <SelectContent>
+            {kits.map(kit => (
+              <SelectItem key={kit.id} value={kit.id}>{kit.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
+        <Button 
+          onClick={loadKit} 
+          disabled={!selectedKitId}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+        >
+          + Load Kit
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
