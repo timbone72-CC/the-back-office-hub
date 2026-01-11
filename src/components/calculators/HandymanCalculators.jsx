@@ -474,29 +474,55 @@ function StairsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 12: STATIC - Layout Reference ==========
-function LayoutReference() {
+// ========== SECTION 12: CALCULATOR - Layout (Interactive) ==========
+function LayoutReference() { // <-- Rename to LayoutCalculator in your head, code below matches logic
+  const [diagonal, setDiagonal] = useState({ side1: '', side2: '' });
+  const [slope, setSlope] = useState({ rise: '', run: '' });
+  const [result, setResult] = useState('');
+
+  const calcDiag = () => {
+    const s1 = parseFloat(diagonal.side1);
+    const s2 = parseFloat(diagonal.side2);
+    if (!s1 || !s2) return;
+    const d = Math.sqrt((s1*s1) + (s2*s2)).toFixed(3);
+    const feet = Math.floor(d);
+    const inches = Math.round((d - feet) * 12 * 100) / 100;
+    setResult(`Diagonal: ${d}' (${feet}' ${inches}")`);
+  };
+
+  const calcSlope = () => {
+    const rise = parseFloat(slope.rise);
+    const run = parseFloat(slope.run);
+    if (!rise || !run) return;
+    const angle = (Math.atan(rise/run) * (180/Math.PI)).toFixed(1);
+    setResult(`Angle: ${angle}° | Pitch: ${rise}/${run}`);
+  };
+
   return (
     <Card>
-      <CardHeader><CardTitle>Layout Reference</CardTitle></CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <div className="p-3 bg-blue-50 rounded border border-blue-200">
-          <p className="font-bold">3-4-5 Triangle Method</p>
-          <p className="text-gray-600">For square corners: 3ft on one side, 4ft on the other. Diagonal = 5ft exactly.</p>
+      <CardHeader><CardTitle>Layout Calculator</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        {/* Diagonal Section */}
+        <div className="space-y-2 border-b pb-4">
+          <Label className="font-bold text-xs">Squaring (Diagonal)</Label>
+          <div className="grid grid-cols-2 gap-2">
+             <NumericInput placeholder="Side A (ft)" value={diagonal.side1} onChange={v => setDiagonal({...diagonal, side1: v})} />
+             <NumericInput placeholder="Side B (ft)" value={diagonal.side2} onChange={v => setDiagonal({...diagonal, side2: v})} />
+          </div>
+          <Button onClick={calcDiag} size="sm" variant="outline" className="w-full">Calculate Diagonal</Button>
         </div>
-        <div className="p-3 bg-blue-50 rounded border border-blue-200">
-          <p className="font-bold">Stud Layout</p>
-          <p className="text-gray-600">16" OC: 0", 16", 32", 48"...</p>
-          <p className="text-gray-600">24" OC: 0", 24", 48", 72"...</p>
+
+        {/* Slope Section */}
+        <div className="space-y-2">
+          <Label className="font-bold text-xs">Slope / Pitch</Label>
+          <div className="grid grid-cols-2 gap-2">
+             <NumericInput placeholder="Rise (in)" value={slope.rise} onChange={v => setSlope({...slope, rise: v})} />
+             <NumericInput placeholder="Run (in)" value={slope.run} onChange={v => setSlope({...slope, run: v})} />
+          </div>
+          <Button onClick={calcSlope} size="sm" variant="outline" className="w-full">Calculate Angle</Button>
         </div>
-        <div className="p-3 bg-blue-50 rounded border border-blue-200">
-          <p className="font-bold">Door Rough Openings</p>
-          <p className="text-gray-600">Width + 2", Height + 2.5"</p>
-        </div>
-        <div className="p-3 bg-blue-50 rounded border border-blue-200">
-          <p className="font-bold">Window Rough Openings</p>
-          <p className="text-gray-600">Window size + ½" each side</p>
-        </div>
+
+        {result && <div className="p-3 bg-blue-50 text-blue-800 font-bold rounded text-center">{result}</div>}
       </CardContent>
     </Card>
   );
