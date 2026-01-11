@@ -7,31 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Save } from 'lucide-react';
 
-// ========== PRESET SELECTOR COMPONENT ==========
-function PresetSelector({ presets, onSelect, label = "Quick-fill" }) {
-  return (
-    <div className="flex items-center gap-2 mb-2">
-      <span className="text-sm text-gray-500">{label}:</span>
-      <select
-        className="text-sm border rounded px-2 py-1"
-        defaultValue=""
-        onChange={(e) => {
-          const selected = presets.find(p => p.label === e.target.value);
-          if (selected) onSelect(selected.price);
-          e.target.value = "";
-        }}
-      >
-        <option value="" disabled>Select preset...</option>
-        {presets.map(p => (
-          <option key={p.label} value={p.label}>
-            {p.label} — ${p.price.toFixed(2)}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 // ========== REGIONAL PRICING (Elk City, OK) ==========
 const REGIONAL_PRICING = {
   region: 'Elk City, OK',
