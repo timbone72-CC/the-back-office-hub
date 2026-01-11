@@ -320,7 +320,6 @@ function ConcreteCalculator({ onSave }) {
 
   const calculate = () => {
     const length = parseFloat(inputs.length);
-    const [pricePerBag, setPricePerBag] = useState('6.50'); // Default price example
     const width = parseFloat(inputs.width);
     const depthInches = parseFloat(inputs.depth);
     
@@ -333,7 +332,6 @@ function ConcreteCalculator({ onSave }) {
     const cubicFeet = length * width * depthFeet;
     const cubicYards = cubicFeet / 27;
     const cubicYardsWithWaste = cubicYards * 1.1;
-    const [pricePerBag, setPricePerBag] = useState('6.50'); // Default price
     const bags60lb = Math.ceil(cubicFeet / 0.45);
     const bags80lb = Math.ceil(cubicFeet / 0.6);
     
