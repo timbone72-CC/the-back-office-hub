@@ -474,8 +474,8 @@ function StairsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// ========== SECTION 12: CALCULATOR - Layout (Interactive) ==========
-function LayoutReference() { // <-- Rename to LayoutCalculator in your head, code below matches logic
+// ========== SECTION 12: CALCULATOR - Layout (Restored Interactive) ==========
+function LayoutReference() {
   const [diagonal, setDiagonal] = useState({ side1: '', side2: '' });
   const [slope, setSlope] = useState({ rise: '', run: '' });
   const [result, setResult] = useState('');
@@ -528,27 +528,34 @@ function LayoutReference() { // <-- Rename to LayoutCalculator in your head, cod
   );
 }
 
-// ========== SECTION 13: STATIC - Conversions Reference ==========
+// ========== SECTION 13: CALCULATOR - Conversions (Restored Interactive) ==========
 function ConversionsReference() {
+  const [val, setVal] = useState('');
+  const [res, setRes] = useState('');
+
+  const toDec = () => {
+    const parts = val.split('/');
+    if(parts.length === 2) setRes(`${val} = ${(parts[0]/parts[1]).toFixed(4)}`);
+  };
+  
+  const toFrac = () => {
+     // Simple approx logic for demo
+     const d = parseFloat(val);
+     if(d) setRes(`${d} ≈ ${Math.round(d*16)}/16`);
+  };
+
   return (
     <Card>
-      <CardHeader><CardTitle>Conversions Reference</CardTitle></CardHeader>
-      <CardContent className="space-y-3 text-sm">
-        <div className="p-3 bg-amber-50 rounded border border-amber-200">
-          <p className="font-bold">Length</p>
-          <p className="text-gray-600">1 foot = 12 inches | 1 yard = 3 feet | 1 meter = 3.281 feet</p>
-        </div>
-        <div className="p-3 bg-amber-50 rounded border border-amber-200">
-          <p className="font-bold">Area</p>
-          <p className="text-gray-600">1 sq yard = 9 sq feet | 1 acre = 43,560 sq feet</p>
-        </div>
-        <div className="p-3 bg-amber-50 rounded border border-amber-200">
-          <p className="font-bold">Volume</p>
-          <p className="text-gray-600">1 cubic yard = 27 cubic feet | 1 cubic foot = 7.48 gallons</p>
-        </div>
-        <div className="p-3 bg-amber-50 rounded border border-amber-200">
-          <p className="font-bold">Weight</p>
-          <p className="text-gray-600">Concrete: ~150 lbs/cu ft | Drywall ½": ~1.6 lbs/sq ft</p>
+      <CardHeader><CardTitle>Conversions</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+            <Label>Value</Label>
+            <NumericInput placeholder="e.g. 3/8 or 0.375" value={val} onChange={setVal} />
+            <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" size="sm" onClick={toDec}>To Decimal</Button>
+                <Button variant="outline" size="sm" onClick={toFrac}>To Fraction</Button>
+            </div>
+            {res && <div className="p-2 bg-amber-50 text-amber-900 font-bold text-center rounded">{res}</div>}
         </div>
       </CardContent>
     </Card>
@@ -582,7 +589,7 @@ function SpecsReference() {
   );
 }
 
-// ========== SECTION 15: MAIN COMPONENT EXPORT ==========
+// ========== SECTION 15: MAIN COMPONENT EXPORT (SMART NAV RESTORED) ==========
 export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [activeCalculator, setActiveCalculator] = useState('framing');
   const [estimates, setEstimates] = useState([]);
@@ -591,21 +598,89 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [laborRate, setLaborRate] = useState(REGIONAL_PRICING.labor.default);
 
-  // FIX: Reactive Prop Listener (Updates state if prop changes)
+  // FIX: Reactive Prop Listener
   useEffect(() => {
     if (preSelectedEstimateId) {
       setSelectedEstimateId(preSelectedEstimateId);
     }
   }, [preSelectedEstimateId]);
 
-  // ... (Keep existing fetchEstimates useEffect) ...
-  // ... (Keep existing handleSaveItem function) ...
-  // ... (Keep existing renderActiveCalculator function) ...
+  // Effect: Fetch estimates
+  useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        const res = await base44.entities.JobEstimate.list();
+        const filtered = (res || []).filter(e => e.status === 'draft' || e.status === 'sent');
+        setEstimates(filtered);
+      } catch (err) {
+        console.error('Failed to fetch estimates:', err);
+      }
+    };
+    fetchEstimates();
+  }, []);
 
-  // ========== Render: Main UI ==========
+  // Save Item Handler
+  const handleSaveItem = async (desc, qty, cost, laborObj = null) => {
+    if (!selectedEstimateId) {
+      alert('Please select an estimate first');
+      return;
+    }
+    if (saving) return;
+
+    setSaving(true);
+    try {
+      const res = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
+      const est = res && res.length > 0 ? res[0] : null;
+
+      if (!est) {
+        alert('Estimate not found');
+        setSaving(false);
+        return;
+      }
+
+      if (!est.items) est.items = [];
+      est.items.push({ description: desc, quantity: parseFloat(qty), unit_cost: parseFloat(cost), total: qty * cost });
+
+      if (laborObj) {
+        const lh = parseFloat(laborObj.hours);
+        const lr = parseFloat(laborObj.rate);
+        if (lh > 0 && lr > 0) {
+          est.items.push({ description: `Labor: ${desc}`, quantity: lh, unit_cost: lr, total: lh * lr });
+        }
+      }
+
+      est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
+      est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
+
+      await base44.entities.JobEstimate.update(selectedEstimateId, est);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      alert('Error saving: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const renderActiveCalculator = () => {
+    const props = { onSave: handleSaveItem, saving, laborRate };
+    switch (activeCalculator) {
+      case 'framing': return <FramingCalculator {...props} />;
+      case 'concrete': return <ConcreteCalculator {...props} />;
+      case 'drywall': return <DrywallCalculator {...props} />;
+      case 'paint': return <PaintCalculator {...props} />;
+      case 'trim': return <TrimCalculator {...props} />;
+      case 'materials': return <MaterialsCalculator {...props} />;
+      case 'stairs': return <StairsCalculator {...props} />;
+      case 'layout': return <LayoutReference />; // Now interactive
+      case 'conversions': return <ConversionsReference />; // Now interactive
+      case 'specs': return <SpecsReference />;
+      default: return null;
+    }
+  };
+
   return (
     <div className="space-y-4 h-full flex flex-col">
-      {/* Success Toast */}
       {showSuccess && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
           <CheckCircle2 className="w-5 h-5" />
@@ -621,7 +696,6 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
               className={`w-full p-2 border rounded ${preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-900' : 'bg-white'}`}
               value={selectedEstimateId} 
               onChange={(e) => setSelectedEstimateId(e.target.value)} 
-              // FIX: Disable if passed from Tools button
               disabled={saving || !!preSelectedEstimateId}
             >
               <option value="">-- Select Estimate --</option>
@@ -632,7 +706,7 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
           </div>
       </div>
 
-      {/* FIX: PILL NAVIGATION (Replaces Dropdown) */}
+      {/* PILL NAVIGATION */}
       <div className="flex flex-wrap gap-2">
         {CALCULATOR_OPTIONS.map(opt => (
           <button
@@ -650,7 +724,7 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         ))}
       </div>
 
-      {/* Labor Rate Toggler (Optional, kept small) */}
+      {/* Labor Rate Toggler */}
       <div className="flex items-center gap-2 justify-end text-xs text-gray-500">
          <span>Labor Rate:</span>
          <div className="w-16"><NumericInput value={laborRate} onChange={setLaborRate} className="h-6 text-right" /></div>
