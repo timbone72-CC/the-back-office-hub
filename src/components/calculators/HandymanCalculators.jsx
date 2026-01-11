@@ -1306,8 +1306,6 @@ const SpecsReference = () => {
   );
 };
 
-// --- END PASTE ---
-
 // CONVERSIONS CALCULATOR
 function ConversionsCalculator() {
   const [fraction, setFraction] = useState({ numerator: '', denominator: '' });
