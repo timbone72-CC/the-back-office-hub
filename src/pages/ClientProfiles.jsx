@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +29,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
+// ========== SECTION 2: CLIENT PROFILES COMPONENT ==========
 export default function ClientProfiles() {
+  // ========== SECTION 3: STATE MANAGEMENT ==========
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
@@ -41,11 +44,13 @@ export default function ClientProfiles() {
     permanent_notes: ''
   });
 
+  // ========== SECTION 4: DATA FETCHING ==========
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.ClientProfile.list('-created_date', 100),
   });
 
+  // ========== SECTION 5: MUTATIONS ==========
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientProfile.create(data),
     onSuccess: () => {
@@ -55,11 +60,13 @@ export default function ClientProfiles() {
       }
       });
 
+  // ========== SECTION 6: FILTERING LOGIC ==========
   const filteredClients = clients?.filter(client => 
     client.name.toLowerCase().includes(search.toLowerCase()) ||
     client.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // ========== SECTION 7: HELPER FUNCTIONS ==========
   const getInitials = (name) => {
     return name
       .split(' ')
@@ -69,6 +76,7 @@ export default function ClientProfiles() {
       .toUpperCase();
   };
 
+  // ========== SECTION 8: RENDER UI ==========
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

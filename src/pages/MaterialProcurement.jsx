@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -10,14 +11,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
+// ========== SECTION 2: MATERIAL PROCUREMENT COMPONENT ==========
 export default function MaterialProcurement() {
-  // 1. Fetch Approved Estimates
+  // ========== SECTION 3: DATA FETCHING ==========
+  // Fetch Approved Estimates
   const { data: estimates, isLoading: estimatesLoading } = useQuery({
     queryKey: ['approved-estimates'],
     queryFn: () => base44.entities.JobEstimate.filter({ status: 'approved' }),
   });
 
-  // 2. Fetch Suppliers for phone numbers
+  // Fetch Suppliers for phone numbers
   const { data: suppliers, isLoading: suppliersLoading } = useQuery({
     queryKey: ['suppliers-list'],
     queryFn: () => base44.entities.Supplier.list(),
@@ -35,7 +38,8 @@ export default function MaterialProcurement() {
     );
   }
 
-  // 3. Group items by Supplier
+  // ========== SECTION 4: GROUPING LOGIC ==========
+  // Group items by Supplier
   const groupedItems = {};
   const unassignedItems = [];
 
@@ -66,6 +70,7 @@ export default function MaterialProcurement() {
     });
   });
 
+  // ========== SECTION 5: HELPER FUNCTIONS ==========
   const getSupplierPhone = (id) => {
     return suppliers?.find(s => s.id === id)?.phone || '';
   };
@@ -74,6 +79,7 @@ export default function MaterialProcurement() {
     return suppliers?.find(s => s.id === id)?.address || '';
   };
 
+  // ========== SECTION 6: RENDER UI ==========
   return (
     <div className="space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

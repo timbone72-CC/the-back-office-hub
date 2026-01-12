@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -12,10 +13,13 @@ import { format } from 'date-fns';
 import { jsPDF } from 'jspdf';
 import { toast } from 'sonner';
 
+// ========== SECTION 2: PORTFOLIO COMPONENT ==========
 export default function Portfolio() {
+  // ========== SECTION 3: STATE MANAGEMENT ==========
   const [filterType, setFilterType] = useState('all'); // all, before, after
   const [searchTerm, setSearchTerm] = useState('');
 
+  // ========== SECTION 4: DATA FETCHING ==========
   const { data: jobs, isLoading } = useQuery({
     queryKey: ['portfolio-jobs'],
     queryFn: async () => {
@@ -24,6 +28,7 @@ export default function Portfolio() {
     }
   });
 
+  // ========== SECTION 5: PHOTO PROCESSING ==========
   // Flatten photos from Completed Jobs
   const allPhotos = (jobs || []).flatMap(job => {
     const jobPhotos = job.photos || [];
@@ -40,12 +45,14 @@ export default function Portfolio() {
     });
   });
 
+  // ========== SECTION 6: FILTERING LOGIC ==========
   const filteredPhotos = allPhotos.filter(p => {
     const matchesType = filterType === 'all' || p.type === filterType;
     const matchesSearch = p.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesSearch;
   });
 
+  // ========== SECTION 7: PDF EXPORT FUNCTION ==========
   const generatePDF = () => {
     try {
       const doc = new jsPDF();
@@ -87,6 +94,7 @@ export default function Portfolio() {
     }
   };
 
+  // ========== SECTION 8: RENDER UI ==========
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
 
   return (

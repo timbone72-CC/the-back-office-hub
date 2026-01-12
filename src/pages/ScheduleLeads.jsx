@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useNavigate } from 'react-router-dom';
@@ -23,7 +24,9 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// ========== SECTION 2: SCHEDULE LEADS COMPONENT ==========
 export default function ScheduleLeads() {
+  // ========== SECTION 3: STATE MANAGEMENT ==========
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -31,6 +34,7 @@ export default function ScheduleLeads() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  // ========== SECTION 4: DATA FETCHING ==========
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
     queryFn: async () => {
@@ -47,6 +51,7 @@ export default function ScheduleLeads() {
     },
   });
 
+  // ========== SECTION 5: FORM STATE ==========
   const [newItem, setNewItem] = useState({
     client_profile_id: '',
     type: 'lead',
@@ -56,6 +61,7 @@ export default function ScheduleLeads() {
     notes: ''
   });
 
+  // ========== SECTION 6: MUTATIONS ==========
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientScheduleLead.create(data),
     onSuccess: () => {
@@ -72,6 +78,7 @@ export default function ScheduleLeads() {
     }
   });
 
+  // ========== SECTION 7: HELPER FUNCTIONS & FILTERING ==========
   const getClientName = (id) => clients?.find(c => c.id === id)?.name || 'Unknown Client';
 
   const filteredRecords = records?.filter(item => {
@@ -81,6 +88,7 @@ export default function ScheduleLeads() {
     return matchesSearch && matchesType;
   });
 
+  // ========== SECTION 8: RENDER UI ==========
   return (
     <div className="space-y-8 max-w-[100vw] overflow-x-hidden px-1">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

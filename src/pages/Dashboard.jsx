@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -15,7 +16,9 @@ import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import LowStockWidget from '@/components/inventory/LowStockWidget';
 
+// ========== SECTION 2: DASHBOARD COMPONENT ==========
 export default function Dashboard() {
+  // ========== SECTION 3: DATA FETCHING ==========
   const { data: clients, isLoading: loadingClients } = useQuery({
     queryKey: ['clients-count'],
     queryFn: () => base44.entities.ClientProfile.list('-created_date', 1),
@@ -31,6 +34,7 @@ export default function Dashboard() {
     queryFn: () => base44.entities.ClientScheduleLead.list('-created_date', 1),
   });
 
+  // ========== SECTION 4: STATS CONFIGURATION ==========
   const stats = [
     {
       title: "Total Clients",
@@ -55,6 +59,7 @@ export default function Dashboard() {
     }
   ];
 
+  // ========== SECTION 5: RENDER UI ==========
   return (
     <div className="space-y-8">
       <div>

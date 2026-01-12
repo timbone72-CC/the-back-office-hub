@@ -1,7 +1,9 @@
+// ========== SECTION 1: IMPORTS ==========
 import React from 'react';
 import HandymanCalculators from '@/components/calculators/HandymanCalculators';
 import { Calculator } from 'lucide-react';
 
+// ========== SECTION 2: CALCULATORS PAGE COMPONENT ==========
 export default function Calculators() {
   return (
     <div className="space-y-6">
