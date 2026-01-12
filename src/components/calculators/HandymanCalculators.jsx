@@ -33,7 +33,7 @@ const CALCULATOR_OPTIONS = [
 const NumericInput = ({ value, onChange, placeholder, disabled, className }) => {
   const handleChange = (e) => {
     const val = e.target.value;
-    if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
+    if (val === '' || /^\d*\.?\d{0,4}$/.test(val)) {
       onChange(val);
     }
   };
