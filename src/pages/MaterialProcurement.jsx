@@ -1,4 +1,5 @@
-// ========== SECTION 1: IMPORTS ==========
+// ========== FILE: pages/MaterialProcurement.jsx ==========
+
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -11,21 +12,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-// ========== SECTION 2: MATERIAL PROCUREMENT COMPONENT ==========
 export default function MaterialProcurement() {
-  // ========== SECTION 3: DATA FETCHING ==========
-  // Fetch Approved Estimates
+  // SECTION 1: DATA FETCHING (QUERIES)
+  // Fetch Approved Estimates to pull material lists
   const { data: estimates, isLoading: estimatesLoading } = useQuery({
     queryKey: ['approved-estimates'],
     queryFn: () => base44.entities.JobEstimate.filter({ status: 'approved' }),
   });
 
-  // Fetch Suppliers for phone numbers
+  // Fetch Suppliers to correlate contact info and addresses
   const { data: suppliers, isLoading: suppliersLoading } = useQuery({
     queryKey: ['suppliers-list'],
     queryFn: () => base44.entities.Supplier.list(),
   });
 
+  // SECTION 2: LOADING & ERROR STATES
   if (estimatesLoading || suppliersLoading) {
     return (
       <div className="space-y-6">
@@ -38,8 +39,7 @@ export default function MaterialProcurement() {
     );
   }
 
-  // ========== SECTION 4: GROUPING LOGIC ==========
-  // Group items by Supplier
+  // SECTION 3: DATA PROCESSING & GROUPING
   const groupedItems = {};
   const unassignedItems = [];
 
@@ -60,7 +60,7 @@ export default function MaterialProcurement() {
           clientProfileId: estimate.client_profile_id
         });
       } else {
-        // Group unassigned items together just in case user wants to see them
+        // Group unassigned items together for visibility
         unassignedItems.push({
           ...item,
           estimateTitle: estimate.title,
@@ -70,18 +70,14 @@ export default function MaterialProcurement() {
     });
   });
 
-  // ========== SECTION 5: HELPER FUNCTIONS ==========
-  const getSupplierPhone = (id) => {
-    return suppliers?.find(s => s.id === id)?.phone || '';
-  };
+  // SECTION 4: UTILITY HELPERS
+  const getSupplierPhone = (id) => suppliers?.find(s => s.id === id)?.phone || '';
+  const getSupplierAddress = (id) => suppliers?.find(s => s.id === id)?.address || '';
 
-  const getSupplierAddress = (id) => {
-    return suppliers?.find(s => s.id === id)?.address || '';
-  };
-
-  // ========== SECTION 6: RENDER UI ==========
+  // SECTION 5: RENDER MAIN VIEW
   return (
     <div className="space-y-8 pb-12">
+      {/* SECTION 6: PAGE HEADER */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
@@ -92,13 +88,14 @@ export default function MaterialProcurement() {
         </div>
       </div>
 
+      {/* SECTION 7: EMPTY STATE HANDLER */}
       {Object.keys(groupedItems).length === 0 && unassignedItems.length === 0 ? (
         <Card className="bg-slate-50 border-dashed border-2">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="w-12 h-12 text-slate-300 mb-4" />
             <h3 className="text-lg font-medium text-slate-900">No Materials to Order</h3>
             <p className="text-slate-500 max-w-sm">
-              There are no approved estimates with materials currently. Approve an estimate to see materials here.
+              There are no approved estimates with materials currently.
             </p>
             <Link to={createPageUrl('JobEstimates')}>
                 <Button className="mt-4" variant="outline">View Estimates</Button>
@@ -106,6 +103,7 @@ export default function MaterialProcurement() {
           </CardContent>
         </Card>
       ) : (
+        // SECTION 8: SUPPLIER PROCUREMENT CARDS
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Object.values(groupedItems).map(group => {
             const phone = getSupplierPhone(group.supplierId);
@@ -131,8 +129,7 @@ export default function MaterialProcurement() {
                 </CardHeader>
                 <CardContent className="p-0 flex-1">
                   <Accordion type="single" collapsible className="w-full">
-                    {/* We can group by Estimate within the Supplier card or just list all items */}
-                    {/* Let's Group by Estimate for clarity */}
+                    {/* Nested grouping by Estimate for clarity within Supplier view */}
                     {Array.from(new Set(group.items.map(i => i.estimateId))).map(estId => {
                         const estItems = group.items.filter(i => i.estimateId === estId);
                         const estTitle = estItems[0].estimateTitle;
@@ -184,6 +181,7 @@ export default function MaterialProcurement() {
         </div>
       )}
       
+      {/* SECTION 9: UNASSIGNED MATERIALS SECTION */}
       {unassignedItems.length > 0 && (
           <div className="mt-8">
               <h3 className="text-lg font-semibold text-slate-700 mb-4 flex items-center gap-2">
