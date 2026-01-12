@@ -33,8 +33,7 @@ const CALCULATOR_OPTIONS = [
 const NumericInput = ({ value, onChange, placeholder, disabled, className }) => {
   const handleChange = (e) => {
     const val = e.target.value;
-    // Updated to allow 4 decimal places for precise measurements (e.g. 0.125)
-    if (val === '' || /^\d*\.?\d{0,4}$/.test(val)) {
+    if (val === '' || /^\d*\.?\d{0,2}$/.test(val)) {
       onChange(val);
     }
   };
@@ -76,21 +75,11 @@ function FramingCalculator({ onSave, saving, laborRate }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-gray-500">Length (ft)</Label>
-            <NumericInput
-              placeholder="Wall length"
-              value={inputs.length}
-              onChange={(v) => setInputs({ ...inputs, length: v })}
-              disabled={saving}
-            />
+            <NumericInput placeholder="Wall length" value={inputs.length} onChange={(v) => setInputs({ ...inputs, length: v })} disabled={saving} />
           </div>
           <div>
             <Label className="text-xs text-gray-500">Spacing (in)</Label>
-            <NumericInput
-              placeholder="Stud spacing"
-              value={inputs.spacing}
-              onChange={(v) => setInputs({ ...inputs, spacing: v })}
-              disabled={saving}
-            />
+            <NumericInput placeholder="Stud spacing" value={inputs.spacing} onChange={(v) => setInputs({ ...inputs, spacing: v })} disabled={saving} />
           </div>
         </div>
         <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
@@ -98,32 +87,12 @@ function FramingCalculator({ onSave, saving, laborRate }) {
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded space-y-3">
             <p className="text-sm font-bold">Studs Needed: {results.qty}</p>
             <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={includeLabor}
-                onChange={(e) => setIncludeLabor(e.target.checked)}
-                id="labor-framing"
-              />
-              <Label htmlFor="labor-framing" className="text-xs cursor-pointer">
-                Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)
-              </Label>
+              <input type="checkbox" checked={includeLabor} onChange={(e) => setIncludeLabor(e.target.checked)} id="labor-framing" />
+              <Label htmlFor="labor-framing" className="text-xs cursor-pointer">Include Labor (~{results.laborHours} hrs @ ${laborRate}/hr)</Label>
             </div>
             <div className="flex gap-2">
-              <NumericInput
-                placeholder="Cost per stud"
-                value={inputs.cost}
-                onChange={(v) => setInputs({...inputs, cost: v})}
-                disabled={saving}
-              />
-              <Button
-                onClick={() => onSave(
-                  results.desc,
-                  results.qty,
-                  inputs.cost,
-                  includeLabor ? { hours: results.laborHours, rate: laborRate } : null
-                )}
-                disabled={saving || !inputs.cost}
-              >
+              <NumericInput placeholder="Cost per stud" value={inputs.cost} onChange={(v) => setInputs({...inputs, cost: v})} disabled={saving} />
+              <Button onClick={() => onSave(results.desc, results.qty, inputs.cost, includeLabor ? { hours: results.laborHours, rate: laborRate } : null)} disabled={saving || !inputs.cost}>
                 <Save className="w-4 h-4" />
               </Button>
             </div>
@@ -410,12 +379,12 @@ function MaterialsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// SECTION 10: CALCULATOR - Stairs (FIXED ASYNC/AWAIT)
+// SECTION 10: CALCULATOR - Stairs (WITH ASYNC FIX)
 function StairsCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ rise: '', treadCost: '', riserCost: '', stringerCost: '' });
   const [results, setResults] = useState(null);
   const [includeLabor, setIncludeLabor] = useState(false);
-  const [isBatchSaving, setIsBatchSaving] = useState(false); // Local loading state
+  const [isBatchSaving, setIsBatchSaving] = useState(false);
 
   const calculate = () => {
     const totalRise = parseFloat(inputs.rise);
@@ -431,31 +400,20 @@ function StairsCalculator({ onSave, saving, laborRate }) {
     });
   };
 
-  // --- THE FIX IS HERE ---
   const handleBatchSave = async () => {
     if (!results) return;
-    setIsBatchSaving(true); // Lock the button
-
-    // 1. We use 'await' to ensure the database finishes writing 
-    // before moving to the next line.
-    
-    if (inputs.treadCost) {
-      await onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
+    setIsBatchSaving(true);
+    try {
+      if (inputs.treadCost) await onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
+      if (inputs.riserCost) await onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
+      if (inputs.stringerCost) await onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
+      if (includeLabor) await onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
+    } catch (e) {
+      console.error(e);
+      alert('Error during batch save');
+    } finally {
+      setIsBatchSaving(false);
     }
-    
-    if (inputs.riserCost) {
-      await onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
-    }
-    
-    if (inputs.stringerCost) {
-      await onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
-    }
-    
-    if (includeLabor) {
-      await onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
-    }
-
-    setIsBatchSaving(false); // Unlock
   };
 
   return (
@@ -504,7 +462,7 @@ function StairsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// SECTION 11: LAYOUT CALCULATOR (FIXED MATH)
+// SECTION 11: LAYOUT CALCULATOR
 function LayoutReference() {
   const [diagonal, setDiagonal] = useState({ side1: '', side2: '' });
   const [slope, setSlope] = useState({ rise: '', run: '' });
@@ -514,7 +472,6 @@ function LayoutReference() {
     const s1 = parseFloat(diagonal.side1);
     const s2 = parseFloat(diagonal.side2);
     if (!s1 || !s2) return;
-    // Use standard multiplication for squaring
     const d = Math.sqrt((s1 * s1) + (s2 * s2)).toFixed(3);
     const feet = Math.floor(d);
     const inches = Math.round((d - feet) * 12 * 100) / 100;
@@ -525,7 +482,6 @@ function LayoutReference() {
     const rise = parseFloat(slope.rise);
     const run = parseFloat(slope.run);
     if (!rise || !run) return;
-    // Calculate angle using arctangent
     const angle = (Math.atan(rise / run) * (180 / Math.PI)).toFixed(1);
     setResult(`Angle: ${angle}° | Pitch: ${rise}/${run}`);
   };
@@ -616,7 +572,7 @@ function SpecsReference() {
   );
 }
 
-// SECTION 14: MAIN COMPONENT (FIXED SAVE HANDLER & PILLS)
+// SECTION 14: MAIN COMPONENT (WITH SAFE MODE DATABASE LOGIC)
 export default function HandymanCalculators({ preSelectedEstimateId }) {
   const [activeCalculator, setActiveCalculator] = useState('framing');
   const [estimates, setEstimates] = useState([]);
@@ -629,11 +585,13 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     if (preSelectedEstimateId) setSelectedEstimateId(preSelectedEstimateId);
   }, [preSelectedEstimateId]);
 
+  // FIX 3: USE LIST INSTEAD OF SEARCH
   useEffect(() => {
     const fetchEstimates = async () => {
       try {
-        const res = await base44.entities.JobEstimate.search({ status: ['draft', 'sent'] });
-        setEstimates(res || []);
+        const res = await base44.entities.JobEstimate.list();
+        const filtered = (res || []).filter(e => e.status === 'draft' || e.status === 'sent');
+        setEstimates(filtered);
       } catch (err) {
         console.error('Failed to fetch estimates:', err);
       }
@@ -647,7 +605,6 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
     const q = parseFloat(qty);
     const c = parseFloat(cost);
 
-    // Numeric guards to prevent NaN or invalid entries
     if (!Number.isFinite(q) || !Number.isFinite(c) || q <= 0 || c <= 0) {
       alert('Invalid quantity or cost');
       return;
@@ -655,7 +612,10 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
     setSaving(true);
     try {
-      const est = await base44.entities.JobEstimate.read(selectedEstimateId);
+      // FIX 1: USE FILTER INSTEAD OF READ (SAFER)
+      const allEst = await base44.entities.JobEstimate.filter({ id: selectedEstimateId });
+      const est = allEst && allEst.length > 0 ? allEst[0] : null;
+
       if (!est) throw new Error('Estimate not found');
 
       if (!est.items) est.items = [];
@@ -680,14 +640,16 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         }
       }
 
-      // Recalculate totals and taxes
       est.subtotal = est.items.reduce((sum, item) => sum + (item.total || 0), 0);
       est.total_amount = est.subtotal * (1 + ((est.tax_rate || 0) / 100));
 
-      await base44.entities.JobEstimate.update(est);
+      // FIX 2: EXPLICIT ID UPDATE
+      await base44.entities.JobEstimate.update(selectedEstimateId, est);
+      
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err) {
+      console.error(err);
       alert('Error saving: ' + err.message);
     } finally {
       setSaving(false);
