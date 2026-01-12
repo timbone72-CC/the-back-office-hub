@@ -1,3 +1,5 @@
+// ========== FILE: pages/ClientDetail.jsx ==========
+
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,12 +30,14 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
 export default function ClientDetail() {
+  // SECTION 1: ROUTING & STATE INITIALIZATION
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
   const clientId = urlParams.get('id');
 
   console.log("ClientDetail: ID from URL:", clientId);
 
+  // SECTION 2: DATA FETCHING - CLIENT PROFILE
   const { data: client, isLoading: clientLoading } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
@@ -63,7 +67,7 @@ export default function ClientDetail() {
     refetchOnWindowFocus: true
   });
 
-  // Reverse Lookup / Related Records View
+  // SECTION 3: DATA FETCHING - RELATED RECORDS (REVERSE LOOKUP)
   const { data: estimates, isLoading: estimatesLoading } = useQuery({
     queryKey: ['client-estimates', clientId],
     queryFn: () => base44.entities.JobEstimate.filter({ client_profile_id: clientId }, '-created_date', 100),
@@ -76,6 +80,7 @@ export default function ClientDetail() {
     enabled: !!clientId
   });
 
+  // SECTION 4: MUTATIONS & EVENT HANDLERS
   const queryClient = useQueryClient();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState(null);
@@ -101,6 +106,7 @@ export default function ClientDetail() {
       onError: () => toast.error("Failed to update profile")
   });
 
+  // SECTION 5: CONDITIONAL RENDERING (LOADING & NOT FOUND)
   if (clientLoading) return <div className="p-8"><Skeleton className="h-64 w-full rounded-xl" /></div>;
   if (!client && !clientLoading) return (
     <div className="p-12 text-center bg-white rounded-xl shadow-sm border border-slate-200">
@@ -112,6 +118,7 @@ export default function ClientDetail() {
     </div>
   );
 
+  // SECTION 6: UI HELPER FUNCTIONS
   const getInitials = (name) => name?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
   const getStatusColor = (status) => {
@@ -129,8 +136,10 @@ export default function ClientDetail() {
     return colors[status] || 'bg-slate-100 text-slate-700';
   };
 
+  // SECTION 7: RENDER MAIN VIEW
   return (
     <div className="space-y-8 pb-12">
+      {/* Navigation Header */}
       <div className="flex items-center gap-4">
         <Link to={createPageUrl('ClientProfiles')}>
           <Button variant="ghost" size="icon" className="hover:bg-white rounded-full">
@@ -157,6 +166,7 @@ export default function ClientDetail() {
               </div>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
+              {/* Profile Edit Dialog */}
               <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="gap-2" onClick={handleEditOpen}>
@@ -261,7 +271,7 @@ export default function ClientDetail() {
         </div>
       </div>
 
-      {/* Service History Section - The Reverse Lookup */}
+      {/* SECTION 8: SERVICE HISTORY (REVERSE LOOKUP VIEWS) */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-slate-900">Service History</h2>
@@ -348,7 +358,6 @@ export default function ClientDetail() {
             </div>
           </TabsContent>
           
-          {/* Detailed tabs just filter the view essentially, keeping it simple for now with the All view which is most useful */}
           <TabsContent value="estimates" className="mt-6">
             <div className="space-y-4">
                  {estimates?.map(est => (
