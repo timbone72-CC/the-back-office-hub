@@ -33,6 +33,7 @@ const CALCULATOR_OPTIONS = [
 const NumericInput = ({ value, onChange, placeholder, disabled, className }) => {
   const handleChange = (e) => {
     const val = e.target.value;
+    // Updated to allow 4 decimal places for precise measurements (e.g. 0.125)
     if (val === '' || /^\d*\.?\d{0,4}$/.test(val)) {
       onChange(val);
     }
