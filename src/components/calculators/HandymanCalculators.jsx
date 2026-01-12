@@ -698,7 +698,7 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         </div>
       )}
 
-      {/* ========== ESTIMATE SELECTOR ========= */}
+{/* ========== ESTIMATE SELECTOR ========= */}
 <div className="p-3 bg-slate-50 border rounded-lg">
   <div className="space-y-1">
     <Label className="text-xs font-bold uppercase text-slate-500">
@@ -719,24 +719,9 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
 
       {estimates.map((e) => (
         <option key={e._id || e.id} value={e._id || e.id}>
-          {e.title}
+          {e.title || e.name || `Estimate ${e._id || e.id}`}
         </option>
       ))}
     </select>
   </div>
 </div>
-
-      {/* Labor Rate Toggler */}
-      <div className="flex items-center gap-2 justify-end text-xs text-gray-500">
-        <span>Labor Rate:</span>
-        <div className="w-16"><NumericInput value={laborRate} onChange={setLaborRate} className="h-6 text-right" /></div>
-        <span>/hr</span>
-      </div>
-
-      {/* Active Calculator Scroll Area */}
-      <div className="flex-1 overflow-y-auto pb-4">
-        {renderActiveCalculator()}
-      </div>
-    </div>
-  );
-}
