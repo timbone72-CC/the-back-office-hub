@@ -1,4 +1,5 @@
-// ========== SECTION 1: IMPORTS ==========
+// ========== FILE: pages/ClientProfiles.jsx ==========
+
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,9 +30,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// ========== SECTION 2: CLIENT PROFILES COMPONENT ==========
 export default function ClientProfiles() {
-  // ========== SECTION 3: STATE MANAGEMENT ==========
+  // SECTION 1: STATE INITIALIZATION
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
@@ -44,29 +44,28 @@ export default function ClientProfiles() {
     permanent_notes: ''
   });
 
-  // ========== SECTION 4: DATA FETCHING ==========
+  // SECTION 2: DATA FETCHING (QUERY)
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
     queryFn: () => base44.entities.ClientProfile.list('-created_date', 100),
   });
 
-  // ========== SECTION 5: MUTATIONS ==========
+  // SECTION 3: CREATE MUTATION
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.ClientProfile.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries(['clients']);
       setIsCreateOpen(false);
       setNewClient({ name: '', phone: '', email: '', address: '', permanent_notes: '' });
-      }
-      });
+    }
+  });
 
-  // ========== SECTION 6: FILTERING LOGIC ==========
+  // SECTION 4: FILTERING & UTILITIES
   const filteredClients = clients?.filter(client => 
     client.name.toLowerCase().includes(search.toLowerCase()) ||
     client.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ========== SECTION 7: HELPER FUNCTIONS ==========
   const getInitials = (name) => {
     return name
       .split(' ')
@@ -76,9 +75,10 @@ export default function ClientProfiles() {
       .toUpperCase();
   };
 
-  // ========== SECTION 8: RENDER UI ==========
+  // SECTION 5: RENDER MAIN VIEW
   return (
     <div className="space-y-8">
+      {/* Header & Create Client Dialog */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Client Profiles</h1>
@@ -143,8 +143,8 @@ export default function ClientProfiles() {
                   placeholder="e.g. Prefers Cedar, Gate Code: 1234"
                 />
               </div>
-              </div>
-              <DialogFooter>
+            </div>
+            <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
               <Button 
                 onClick={() => createMutation.mutate(newClient)}
@@ -158,6 +158,7 @@ export default function ClientProfiles() {
         </Dialog>
       </div>
 
+      {/* SECTION 6: SEARCH INPUT */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
         <Input 
@@ -168,6 +169,7 @@ export default function ClientProfiles() {
         />
       </div>
 
+      {/* SECTION 7: CLIENT GRID & CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           Array(6).fill(0).map((_, i) => (
