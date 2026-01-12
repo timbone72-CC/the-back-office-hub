@@ -698,41 +698,33 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         </div>
       )}
 
-      {/* Header: Estimate Selector */}
-      <div className="p-3 bg-slate-50 border rounded-lg">
-          <div className="space-y-1">
-            <Label className="text-xs font-bold uppercase text-slate-500">Target Estimate</Label>
-            <select 
-              className={`w-full p-2 border rounded ${preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-900' : 'bg-white'}`}
-              value={selectedEstimateId} 
-              onChange={(e) => setSelectedEstimateId(e.target.value)} 
-              disabled={saving || !!preSelectedEstimateId}
-            >
-              <option value="">-- Select Estimate --</option>
-              {estimates.map(e => (
-                <option key={e._id || e.id} value={e._id || e.id}>{e.title}</option>
-              ))}
-            </select>
-          </div>
-      </div>
+      {/* ========== ESTIMATE SELECTOR ========= */}
+<div className="p-3 bg-slate-50 border rounded-lg">
+  <div className="space-y-1">
+    <Label className="text-xs font-bold uppercase text-slate-500">
+      Target Estimate
+    </Label>
 
-      {/* PILL NAVIGATION (As seen in workspace) */}
-      <div className="flex flex-wrap gap-2">
-        {CALCULATOR_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => setActiveCalculator(opt.value)}
-            className={`
-              px-3 py-2 text-xs font-bold rounded shadow-sm border transition-all flex-grow text-center
-              ${activeCalculator === opt.value 
-                ? 'bg-slate-800 text-white border-slate-900 ring-2 ring-slate-200' 
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'}
-            `}
-          >
-            {opt.label.replace(' Calculator', '').replace(' Reference', '')}
-          </button>
-        ))}
-      </div>
+    <select
+      className={`w-full p-2 border rounded ${
+        preSelectedEstimateId
+          ? 'bg-blue-50 border-blue-300 font-bold text-blue-900'
+          : 'bg-white'
+      }`}
+      value={selectedEstimateId}
+      onChange={(e) => setSelectedEstimateId(e.target.value)}
+      disabled={saving || !!preSelectedEstimateId}
+    >
+      <option value="">-- Select Estimate --</option>
+
+      {estimates.map((e) => (
+        <option key={e._id || e.id} value={e._id || e.id}>
+          {e.title}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
 
       {/* Labor Rate Toggler */}
       <div className="flex items-center gap-2 justify-end text-xs text-gray-500">
