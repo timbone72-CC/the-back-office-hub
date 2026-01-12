@@ -1,4 +1,5 @@
-// ========== SECTION 1: IMPORTS ==========
+// ========== FILE: pages/Dashboard.jsx ==========
+
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
@@ -16,9 +17,8 @@ import { createPageUrl } from '@/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import LowStockWidget from '@/components/inventory/LowStockWidget';
 
-// ========== SECTION 2: DASHBOARD COMPONENT ==========
 export default function Dashboard() {
-  // ========== SECTION 3: DATA FETCHING ==========
+  // SECTION 1: DATA FETCHING (QUERIES)
   const { data: clients, isLoading: loadingClients } = useQuery({
     queryKey: ['clients-count'],
     queryFn: () => base44.entities.ClientProfile.list('-created_date', 1),
@@ -34,7 +34,7 @@ export default function Dashboard() {
     queryFn: () => base44.entities.ClientScheduleLead.list('-created_date', 1),
   });
 
-  // ========== SECTION 4: STATS CONFIGURATION ==========
+  // SECTION 2: STATS CONFIGURATION
   const stats = [
     {
       title: "Total Clients",
@@ -59,14 +59,16 @@ export default function Dashboard() {
     }
   ];
 
-  // ========== SECTION 5: RENDER UI ==========
+  // SECTION 3: RENDER MAIN VIEW
   return (
     <div className="space-y-8">
+      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Overview</h1>
         <p className="text-slate-500 mt-2">Welcome back to The "Back-Office" Hub.</p>
       </div>
 
+      {/* SECTION 4: STAT CARDS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
           <Link key={index} to={createPageUrl(stat.link)}>
@@ -87,7 +89,9 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* SECTION 5: MAIN CONTENT GRID (RECENT ESTIMATES & WIDGETS) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Recent Estimates List */}
         <Card className="border-slate-200 shadow-sm lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -128,6 +132,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* SECTION 6: SIDEBAR (LOW STOCK & QUICK ACTIONS) */}
         <div className="space-y-6">
           <LowStockWidget />
 
