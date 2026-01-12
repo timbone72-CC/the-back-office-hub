@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -41,6 +42,7 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 
+// ========== SECTION 2: MAIN COMPONENT ==========
 export default function EstimateDetail() {
   const location = useLocation();
   const urlParams = new URLSearchParams(location.search);
@@ -48,6 +50,7 @@ export default function EstimateDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  // ========== SECTION 3: DATA FETCHING ==========
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
     queryFn: () => base44.entities.ClientProfile.list('name', 100),
@@ -70,8 +73,10 @@ export default function EstimateDetail() {
     refetchOnWindowFocus: true
   });
 
+  // ========== SECTION 4: STATE MANAGEMENT ==========
   const [formData, setFormData] = useState(null);
 
+  // ========== SECTION 5: FORM DATA INITIALIZATION ==========
   useEffect(() => {
     if (estimateId && estimate) {
       // Edit Mode
@@ -126,6 +131,7 @@ export default function EstimateDetail() {
     queryFn: () => base44.entities.Inventory.list('item_name', 100)
   });
 
+  // ========== SECTION 6: MUTATIONS ==========
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.JobEstimate.create(data),
     onSuccess: (newRecord) => {
@@ -147,6 +153,7 @@ export default function EstimateDetail() {
     }
   });
 
+  // ========== SECTION 7: EVENT HANDLERS ==========
   const handleSave = () => {
     if (!formData.title || !formData.client_profile_id) {
         toast.error("Please fill in Title and Client");
@@ -258,6 +265,7 @@ export default function EstimateDetail() {
     }, 500);
   };
 
+  // ========== SECTION 8: RENDER UI ==========
   if (isLoading) return <div className="p-8"><Skeleton className="h-96 w-full" /></div>;
   
   if (estimateId && !estimate && !isLoading) return (
@@ -645,6 +653,7 @@ export default function EstimateDetail() {
   );
 }
 
+// ========== SECTION 9: JOB KIT LOADER COMPONENT ==========
 function JobKitLoader({ onItemAdd }) {
   const [kits, setKits] = useState([]);
   const [selectedKitId, setSelectedKitId] = useState('');

@@ -1,3 +1,4 @@
+// ========== SECTION 1: IMPORTS ==========
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link, useLocation } from 'react-router-dom';
@@ -19,10 +20,12 @@ Image as ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// ========== SECTION 2: LAYOUT COMPONENT ==========
 export default function Layout({ children }) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // ========== Navigation Configuration ==========
   const navigation = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Clients', icon: Users, path: '/clients' },
@@ -35,12 +38,14 @@ export default function Layout({ children }) {
     { name: 'System Logs', icon: Activity, path: '/system-logs' },
     ];
 
+  // ========== Helper Functions ==========
   const isActive = (path) => {
     if (path === '/' && location.pathname !== '/') return false;
     return location.pathname.startsWith(path);
   };
 
-  // Notification Logic: Check for upcoming appointments occasionally
+  // ========== SECTION 3: NOTIFICATION LOGIC ==========
+  // Check for upcoming appointments occasionally
   // In a real app, this would be a backend cron job.
   // Here we use the active client to trigger the check.
   React.useEffect(() => {
@@ -58,9 +63,10 @@ export default function Layout({ children }) {
     return () => clearInterval(interval);
   }, []);
 
+  // ========== SECTION 4: RENDER UI ==========
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans text-slate-900">
-      {/* Sidebar Desktop */}
+      {/* ========== Desktop Sidebar ========== */}
       <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 fixed h-full z-10">
         <div className="p-6 border-b border-slate-100 flex items-center gap-3">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
@@ -108,7 +114,7 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      {/* Mobile Header */}
+      {/* ========== Mobile Header ========== */}
       <div className="md:hidden fixed w-full bg-white z-20 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
@@ -121,7 +127,7 @@ export default function Layout({ children }) {
         </Button>
       </div>
 
-      {/* Mobile Menu */}
+      {/* ========== Mobile Menu ========== */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-10 bg-white pt-20 px-4">
           <nav className="space-y-2">
@@ -152,7 +158,7 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* ========== Main Content Area ========== */}
       <main className="flex-1 md:ml-64 pt-16 md:pt-0 min-h-screen transition-all duration-300">
         <div className="p-6 md:p-10 max-w-7xl mx-auto animate-in fade-in duration-500">
           {children}
