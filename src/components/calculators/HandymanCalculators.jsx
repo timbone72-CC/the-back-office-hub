@@ -698,30 +698,53 @@ export default function HandymanCalculators({ preSelectedEstimateId }) {
         </div>
       )}
 
-{/* ========== ESTIMATE SELECTOR ========= */}
-<div className="p-3 bg-slate-50 border rounded-lg">
-  <div className="space-y-1">
-    <Label className="text-xs font-bold uppercase text-slate-500">
-      Target Estimate
-    </Label>
+      <div className="p-3 bg-slate-50 border rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <Label className="text-xs font-bold uppercase text-slate-500">Target Estimate</Label>
+            <select
+              className={`w-full p-2 border rounded ${
+                preSelectedEstimateId ? 'bg-blue-50 border-blue-300 font-bold text-blue-900' : 'bg-white'
+              }`}
+              value={selectedEstimateId}
+              onChange={(e) => setSelectedEstimateId(e.target.value)}
+              disabled={saving || !!preSelectedEstimateId}
+            >
+              <option value="">-- Select Estimate --</option>
+              {estimates.map((e) => (
+                <option key={e._id || e.id} value={e._id || e.id}>
+                  {e.title || e.name || `Estimate ${e._id || e.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs font-bold uppercase text-slate-500">Labor Rate ($/hr) — {REGIONAL_PRICING.region}</Label>
+            <NumericInput 
+              value={laborRate} 
+              onChange={(v) => setLaborRate(parseFloat(v) || REGIONAL_PRICING.labor.default)} 
+              disabled={saving} 
+              className="bg-white" 
+            />
+          </div>
+        </div>
+      </div>
 
-    <select
-      className={`w-full p-2 border rounded ${
-        preSelectedEstimateId
-          ? 'bg-blue-50 border-blue-300 font-bold text-blue-900'
-          : 'bg-white'
-      }`}
-      value={selectedEstimateId}
-      onChange={(e) => setSelectedEstimateId(e.target.value)}
-      disabled={saving || !!preSelectedEstimateId}
-    >
-      <option value="">-- Select Estimate --</option>
+      <div className="flex flex-wrap gap-2">
+        {CALCULATOR_OPTIONS.map(opt => (
+          <Button 
+            key={opt.value} 
+            variant={activeCalculator === opt.value ? 'default' : 'outline'} 
+            onClick={() => setActiveCalculator(opt.value)} 
+            disabled={saving} 
+            className="text-sm"
+          >
+            {opt.label}
+          </Button>
+        ))}
+      </div>
 
-      {estimates.map((e) => (
-        <option key={e._id || e.id} value={e._id || e.id}>
-          {e.title || e.name || `Estimate ${e._id || e.id}`}
-        </option>
-      ))}
-    </select>
-  </div>
-</div>
+      {renderActiveCalculator()}
+    </div>
+  );
+}
