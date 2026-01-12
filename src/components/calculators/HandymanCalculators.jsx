@@ -409,11 +409,12 @@ function MaterialsCalculator({ onSave, saving, laborRate }) {
   );
 }
 
-// SECTION 10: CALCULATOR - Stairs
+// SECTION 10: CALCULATOR - Stairs (FIXED ASYNC/AWAIT)
 function StairsCalculator({ onSave, saving, laborRate }) {
   const [inputs, setInputs] = useState({ rise: '', treadCost: '', riserCost: '', stringerCost: '' });
   const [results, setResults] = useState(null);
   const [includeLabor, setIncludeLabor] = useState(false);
+  const [isBatchSaving, setIsBatchSaving] = useState(false); // Local loading state
 
   const calculate = () => {
     const totalRise = parseFloat(inputs.rise);
@@ -429,12 +430,31 @@ function StairsCalculator({ onSave, saving, laborRate }) {
     });
   };
 
-  const handleSave = () => {
+  // --- THE FIX IS HERE ---
+  const handleBatchSave = async () => {
     if (!results) return;
-    if (inputs.treadCost) onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
-    if (inputs.riserCost) onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
-    if (inputs.stringerCost) onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
-    if (includeLabor) onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
+    setIsBatchSaving(true); // Lock the button
+
+    // 1. We use 'await' to ensure the database finishes writing 
+    // before moving to the next line.
+    
+    if (inputs.treadCost) {
+      await onSave(`Stair Treads (${results.treads})`, results.treads, inputs.treadCost, null);
+    }
+    
+    if (inputs.riserCost) {
+      await onSave(`Stair Risers (${results.risers})`, results.risers, inputs.riserCost, null);
+    }
+    
+    if (inputs.stringerCost) {
+      await onSave(`Stair Stringers (${results.stringers})`, results.stringers, inputs.stringerCost, null);
+    }
+    
+    if (includeLabor) {
+      await onSave(`Labor: ${results.desc}`, parseFloat(results.laborHours), laborRate.toString(), null);
+    }
+
+    setIsBatchSaving(false); // Unlock
   };
 
   return (
@@ -443,9 +463,9 @@ function StairsCalculator({ onSave, saving, laborRate }) {
       <CardContent className="space-y-4">
         <div>
           <Label className="text-xs text-gray-500">Total Rise (inches)</Label>
-          <NumericInput placeholder="Floor to floor height" value={inputs.rise} onChange={(v) => setInputs({ ...inputs, rise: v })} disabled={saving} />
+          <NumericInput placeholder="Floor to floor height" value={inputs.rise} onChange={(v) => setInputs({ ...inputs, rise: v })} disabled={saving || isBatchSaving} />
         </div>
-        <Button onClick={calculate} className="w-full" disabled={saving}>Calculate</Button>
+        <Button onClick={calculate} className="w-full" disabled={saving || isBatchSaving}>Calculate</Button>
         {results && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded space-y-3">
             <div className="text-sm space-y-1">
@@ -460,20 +480,21 @@ function StairsCalculator({ onSave, saving, laborRate }) {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs text-gray-500">Tread</Label>
-                <NumericInput placeholder="Each" value={inputs.treadCost} onChange={(v) => setInputs({...inputs, treadCost: v})} disabled={saving} />
+                <Label className="text-xs text-gray-500">Tread $</Label>
+                <NumericInput placeholder="Each" value={inputs.treadCost} onChange={(v) => setInputs({...inputs, treadCost: v})} disabled={saving || isBatchSaving} />
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Riser</Label>
-                <NumericInput placeholder="Each" value={inputs.riserCost} onChange={(v) => setInputs({...inputs, riserCost: v})} disabled={saving} />
+                <Label className="text-xs text-gray-500">Riser $</Label>
+                <NumericInput placeholder="Each" value={inputs.riserCost} onChange={(v) => setInputs({...inputs, riserCost: v})} disabled={saving || isBatchSaving} />
               </div>
               <div>
-                <Label className="text-xs text-gray-500">Stringer</Label>
-                <NumericInput placeholder="Each" value={inputs.stringerCost} onChange={(v) => setInputs({...inputs, stringerCost: v})} disabled={saving} />
+                <Label className="text-xs text-gray-500">Stringer $</Label>
+                <NumericInput placeholder="Each" value={inputs.stringerCost} onChange={(v) => setInputs({...inputs, stringerCost: v})} disabled={saving || isBatchSaving} />
               </div>
             </div>
-            <Button onClick={handleSave} className="w-full" disabled={saving || (!inputs.treadCost && !inputs.riserCost && !inputs.stringerCost)}>
-              <Save className="w-4 h-4 mr-2" /> Save All to Estimate
+            <Button onClick={handleBatchSave} className="w-full" disabled={saving || isBatchSaving || (!inputs.treadCost && !inputs.riserCost && !inputs.stringerCost)}>
+              <Save className="w-4 h-4 mr-2" /> 
+              {isBatchSaving ? 'Saving...' : 'Save All to Estimate'}
             </Button>
           </div>
         )}
