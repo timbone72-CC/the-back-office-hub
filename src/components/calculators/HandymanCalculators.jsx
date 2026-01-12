@@ -591,7 +591,6 @@ function SpecsReference() {
 
 // ========== SECTION 15: MAIN COMPONENT EXPORT (SMART NAV RESTORED) ==========
 export default function HandymanCalculators({ preSelectedEstimateId }) {
-  console.log('base44 runtime test:', typeof base44);
   const [activeCalculator, setActiveCalculator] = useState('framing');
   const [estimates, setEstimates] = useState([]);
   const [selectedEstimateId, setSelectedEstimateId] = useState(preSelectedEstimateId || '');
