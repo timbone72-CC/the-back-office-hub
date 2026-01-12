@@ -11,9 +11,9 @@ import { base44 } from '@/api/base44Client';
 
 export default function EstimateDetail() {
   // --- THE FIX: We define estimateId here ---
-  const { id } = useParams(); 
-  const estimateId = id; 
-  const navigate = useNavigate();
+const { id } = useParams();
+const [searchParams] = useSearchParams();
+const estimateId = id || searchParams.get('id');
 
   // State
   const [formData, setFormData] = useState(null);
