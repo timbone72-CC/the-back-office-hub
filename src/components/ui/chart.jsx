@@ -1,10 +1,12 @@
+// ========== FILE: components/ui/chart.jsx ==========
+
 "use client";
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
 
-// Format: { THEME_NAME: CSS_SELECTOR }
+// SECTION 1: THEME & CONTEXT INITIALIZATION
 const THEMES = {
   light: "",
   dark: ".dark"
@@ -22,6 +24,7 @@ function useChart() {
   return context
 }
 
+// SECTION 2: MAIN CONTAINER & STYLING
 const ChartContainer = React.forwardRef(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
@@ -77,6 +80,7 @@ return color ? `  --color-${key}: ${color};` : null
   );
 }
 
+// SECTION 3: TOOLTIP COMPONENTS
 const ChartTooltip = RechartsPrimitive.Tooltip
 
 const ChartTooltipContent = React.forwardRef((
@@ -214,6 +218,7 @@ const ChartTooltipContent = React.forwardRef((
 })
 ChartTooltipContent.displayName = "ChartTooltip"
 
+// SECTION 4: LEGEND COMPONENTS
 const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef((
@@ -262,7 +267,7 @@ const ChartLegendContent = React.forwardRef((
 })
 ChartLegendContent.displayName = "ChartLegend"
 
-// Helper to extract item config from a payload.
+// SECTION 5: UTILITY HELPERS
 function getPayloadConfigFromPayload(
   config,
   payload,
