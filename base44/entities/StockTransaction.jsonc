@@ -1,0 +1,46 @@
+{
+  "name": "StockTransaction",
+  "type": "object",
+  "properties": {
+    "inventory_id": {
+      "type": "string",
+      "description": "Link to Inventory Item"
+    },
+    "quantity_change": {
+      "type": "number",
+      "description": "Amount changed (negative for deduction, positive for addition)"
+    },
+    "transaction_type": {
+      "type": "string",
+      "enum": [
+        "job_deduction",
+        "restock",
+        "manual_adjustment",
+        "return"
+      ],
+      "default": "manual_adjustment"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID of related Job, Order, or other record"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Unique ID for bulk operations to allow grouping and rollback"
+    },
+    "reference_note": {
+      "type": "string",
+      "description": "Human readable note (e.g. 'Used in Job #123')"
+    },
+    "date": {
+      "type": "string",
+      "format": "date_time"
+    }
+  },
+  "required": [
+    "inventory_id",
+    "quantity_change",
+    "transaction_type",
+    "date"
+  ]
+}

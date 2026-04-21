@@ -1,0 +1,35 @@
+{
+  "name": "JobKitItem",
+  "type": "object",
+  "properties": {
+    "job_kit_id": {
+      "type": "string",
+      "description": "Reference to the parent JobKit"
+    },
+    "item_name": {
+      "type": "string",
+      "description": "Name of the item in the kit"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category of the item (e.g., Lumber, Hardware, Plumbing)"
+    },
+    "default_qty": {
+      "type": "number",
+      "description": "Default quantity for this item"
+    },
+    "default_unit": {
+      "type": "string",
+      "description": "Unit of measurement (e.g., each, lf, sqft)"
+    },
+    "default_cost": {
+      "type": "number",
+      "description": "Default cost per unit in dollars"
+    }
+  },
+  "required": [
+    "job_kit_id",
+    "item_name",
+    "default_qty"
+  ]
+}

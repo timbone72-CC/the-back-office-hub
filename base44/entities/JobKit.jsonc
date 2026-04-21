@@ -1,0 +1,39 @@
+{
+  "name": "JobKit",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the kit (e.g., 'Bathroom Rough-in Kit')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what the kit contains or is used for"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "inventory_id": {
+            "type": "string",
+            "description": "ID of the inventory item"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity of the item in this kit"
+          }
+        },
+        "required": [
+          "inventory_id",
+          "quantity"
+        ]
+      },
+      "default": [],
+      "description": "List of materials in this kit"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "Inventory",
+  "type": "object",
+  "properties": {
+    "item_name": {
+      "type": "string",
+      "description": "Name of the item"
+    },
+    "normalized_name": {
+      "type": "string",
+      "description": "Lowercase trimmed name for duplicate prevention"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 0,
+      "description": "Current quantity on hand"
+    },
+    "unit": {
+      "type": "string",
+      "default": "each",
+      "description": "Unit of measurement (e.g., box, ea, lbs)"
+    },
+    "reorder_point": {
+      "type": "number",
+      "default": 5,
+      "description": "Quantity at which to reorder"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "Link to preferred Supplier"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode or SKU for scanning"
+    },
+    "material_library_id": {
+      "type": "string",
+      "description": "Link to the standardized Material Library item"
+    }
+  },
+  "required": [
+    "item_name",
+    "quantity",
+    "reorder_point"
+  ]
+}

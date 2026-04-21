@@ -1,0 +1,21 @@
+{
+  "name": "MaterialLibrary",
+  "type": "object",
+  "properties": {
+    "item_name": {
+      "type": "string",
+      "description": "Name of the material item"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category of the material (e.g., Lumber, Plumbing, Electrical)"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement (e.g., each, lf, sqft)"
+    }
+  },
+  "required": [
+    "item_name"
+  ]
+}

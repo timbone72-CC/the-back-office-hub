@@ -1,0 +1,158 @@
+{
+  "name": "Job",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Job Title"
+    },
+    "client_profile_id": {
+      "type": "string",
+      "description": "Linked Client Profile ID"
+    },
+    "linked_estimate_id": {
+      "type": "string",
+      "description": "Linked Estimate ID"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Total estimated budget/price for the job (Revenue)"
+    },
+    "labor_rate": {
+      "type": "number",
+      "default": 75,
+      "description": "Hourly labor rate for cost calculation"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "unpaid",
+        "pending",
+        "paid",
+        "partial"
+      ],
+      "default": "unpaid",
+      "description": "Current payment status of the job"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when payment was received"
+    },
+    "material_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_cost": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "supplier_id": {
+            "type": "string",
+            "description": "ID of the supplier for this item"
+          },
+          "supplier_name": {
+            "type": "string",
+            "description": "Name of the supplier for display"
+          }
+        }
+      },
+      "default": []
+    },
+    "scoping_notes": {
+      "type": "string",
+      "description": "Notes from the estimate scoping phase, e.g., client preferences"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "canceled",
+        "on_hold"
+      ],
+      "default": "in_progress"
+    },
+    "tasks": {
+      "type": "array",
+      "description": "Punch List / Tasks",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "default": []
+    },
+    "time_logs": {
+      "type": "array",
+      "description": "Time Tracking Logs",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "duration_minutes": {
+            "type": "number"
+          }
+        }
+      },
+      "default": []
+    },
+    "active_timer_start": {
+      "type": "string",
+      "description": "ISO timestamp if currently clocked in, null/empty otherwise"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after",
+              "general"
+            ],
+            "default": "general"
+          }
+        }
+      },
+      "default": [],
+      "description": "Job Photos"
+    }
+  },
+  "required": [
+    "title",
+    "client_profile_id",
+    "budget"
+  ]
+}

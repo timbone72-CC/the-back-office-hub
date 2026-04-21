@@ -1,0 +1,101 @@
+{
+  "name": "JobEstimate",
+  "type": "object",
+  "properties": {
+    "client_profile_id": {
+      "type": "string",
+      "description": "Link to Client Profile"
+    },
+    "title": {
+      "type": "string",
+      "description": "Estimate Title"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "approved",
+        "rejected",
+        "converted"
+      ],
+      "default": "draft"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit_cost": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "supplier_id": {
+            "type": "string",
+            "description": "ID of the supplier for this item"
+          },
+          "supplier_name": {
+            "type": "string",
+            "description": "Name of the supplier for display"
+          },
+          "inventory_id": {
+            "type": "string",
+            "description": "Link to Inventory item for automatic deduction"
+          }
+        }
+      },
+      "default": []
+    },
+    "subtotal": {
+      "type": "number",
+      "default": 0
+    },
+    "tax_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Tax Rate Percentage (e.g. 10 for 10%)"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Final Total Estimate"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after",
+              "general"
+            ],
+            "default": "general"
+          }
+        }
+      },
+      "default": [],
+      "description": "Job Photos with Type"
+    }
+  },
+  "required": [
+    "client_profile_id",
+    "title"
+  ]
+}

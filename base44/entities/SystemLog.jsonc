@@ -1,0 +1,41 @@
+{
+  "name": "SystemLog",
+  "type": "object",
+  "properties": {
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error"
+      ],
+      "default": "info",
+      "description": "Level of the log entry"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where the event originated (e.g., 'Job Conversion', 'CSV Import')"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human readable summary of the event"
+    },
+    "details": {
+      "type": "string",
+      "description": "Technical details, stack trace, or related IDs (text or JSON)"
+    },
+    "batch_id": {
+      "type": "string",
+      "description": "Correlation ID for grouping related logs"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who triggered the event"
+    }
+  },
+  "required": [
+    "severity",
+    "source",
+    "message"
+  ]
+}

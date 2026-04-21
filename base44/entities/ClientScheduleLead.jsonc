@@ -1,0 +1,82 @@
+{
+  "name": "ClientScheduleLead",
+  "type": "object",
+  "properties": {
+    "client_profile_id": {
+      "type": "string",
+      "description": "Link to Client Profile"
+    },
+    "linked_estimate_id": {
+      "type": "string",
+      "description": "Link to Job Estimate"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "schedule"
+      ],
+      "default": "lead",
+      "description": "Record Type"
+    },
+    "title": {
+      "type": "string",
+      "description": "Title or Description"
+    },
+    "service_description": {
+      "type": "string",
+      "description": "Requested Service Description"
+    },
+    "ai_summary": {
+      "type": "string",
+      "description": "AI Generated Summary"
+    },
+    "date": {
+      "type": "string",
+      "format": "date_time",
+      "description": "Date and Time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "needs_callback",
+        "completed",
+        "canceled",
+        "new",
+        "contacted"
+      ],
+      "default": "new"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "before",
+              "after",
+              "general"
+            ],
+            "default": "general"
+          }
+        }
+      },
+      "default": [],
+      "description": "Job/Lead Photos"
+    }
+  },
+  "required": [
+    "client_profile_id",
+    "title",
+    "type"
+  ]
+}

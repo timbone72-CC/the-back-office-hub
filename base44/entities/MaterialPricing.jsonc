@@ -1,0 +1,26 @@
+{
+  "name": "MaterialPricing",
+  "type": "object",
+  "properties": {
+    "material_id": {
+      "type": "string",
+      "description": "ID of the material from MaterialLibrary"
+    },
+    "supplier_id": {
+      "type": "string",
+      "description": "ID of the supplier from Supplier entity"
+    },
+    "min_price": {
+      "type": "number",
+      "description": "Minimum observed price"
+    },
+    "max_price": {
+      "type": "number",
+      "description": "Maximum observed price"
+    }
+  },
+  "required": [
+    "material_id",
+    "supplier_id"
+  ]
+}
