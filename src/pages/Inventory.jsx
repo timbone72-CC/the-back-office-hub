@@ -63,7 +63,10 @@ export default function Inventory() {
     isLoading: suppliersLoading
   } = useQuery({
     queryKey: ['suppliers'],
-    queryFn: () => base44.entities.Supplier.list('store_name', 100)
+    queryFn: async () => {
+      const res = await base44.entities.Supplier.list('store_name', 100);
+      return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    }
   });
 
   const {
@@ -71,7 +74,10 @@ export default function Inventory() {
     isLoading: inventoryLoading
   } = useQuery({
     queryKey: ['inventory'],
-    queryFn: () => base44.entities.Inventory.list('item_name', 100)
+    queryFn: async () => {
+      const res = await base44.entities.Inventory.list('item_name', 100);
+      return Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+    }
   });
 
   const saveMutation = useMutation({
